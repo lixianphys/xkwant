@@ -1,6 +1,6 @@
 import tinyarray
 
-t   =   38.0998/1e3 # = hbar^2/(2m_e) in eV*nm^2
+tk   =   38.0998/1e3 # = hbar^2/(2m_e) in eV*nm^2
 e2h =   0.0000387405 # = e^2/h in A/V
 el  =   1.602176634e-19 # e in C
 eh  =   2.41799e14 # e/h in 1/s
