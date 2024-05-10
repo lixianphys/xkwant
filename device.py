@@ -6,6 +6,7 @@ from kwant.continuum import build_discretized,discretize_symbolic
 from physics import *
 from batch import *
 from test import *
+import scipy.sparse.linalg as sla
 
 
 __all__ = ['Hbar']
@@ -56,6 +57,17 @@ class Hbar(Builder):
             self.attach_lead(top_right_lead)
         else:
             raise ValueError(f"pos can only be BL, TL, BR, TR (case non-sensitive)")
+    def ham_bfield(self,Bfields,num_ev):
+        ''' Find the eigenvalues for each magnetic fifeld value in Bfields. Make sure magnetic
+        field B is implemented in Hamiltonian with symbol B '''
+        if self.H == {}:
+            return (f"This Hbar system does not contain any sites.")
+        energies = []
+        for B in Bfields:
+            ham_mat = self.hamiltonin_submatrix(params=dict(B=B), sparse=True)
+            ev = sla.eigsh(ham_mat.tocsc(),k=num_ev,sigma=0,return_eigenvectors=False)
+            energies.append(ev)
+        return energies
     def set_ham_params(self,params):
         self.ham_params = params
 

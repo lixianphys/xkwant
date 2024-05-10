@@ -83,6 +83,8 @@ def rho_j_energy_site(syst,energy:float):
     # Determine the size of the arrays needed
     wf = kwant.wave_function(fsyst, energy=energy)
     sample_wf = wf(0)
+    if len(sample_wf) == 0:
+        return None, None
     # print(f"At energy={energy},sample_wf.shape={sample_wf.shape}")
     max_num_modes = sample_wf.shape[0]
     site_num = int(sample_wf.shape[1]//2)  # the length of each mode including two orbitals is twice the number of sites
