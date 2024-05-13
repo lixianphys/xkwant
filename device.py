@@ -2,7 +2,8 @@ import kwant
 import matplotlib.pyplot as plt
 import numpy as np
 from kwant import Builder, TranslationalSymmetry
-from kwant.continuum import build_discretized,discretize_symbolic
+from kwant.continuum import (discretize, sympify, build_discretized,
+                             discretize_symbolic)
 from physics import *
 from batch import *
 from test import *
@@ -26,8 +27,11 @@ class Hbar(Builder):
                 f"Geometric parameters: lx_leg={self.lx_leg},ly_leg={self.ly_leg},lx_neck={self.lx_neck},ly_neck={self.ly_neck}\n"
                 f"{len(self.leads)} leads have been attached\n"
                 f"Hamitonian parameters: {formatted_ham_params}")
-    def build_byfill(self,continuum_model):
-        template = build_discretized(*discretize_symbolic(continuum_model))
+    def build_byfill(self,continuum_model,params,a=1):
+        self.set_ham_params(params)
+        # template = build_discretized(*discretize_symbolic(continuum_model))
+        model_params = sympify(continuum_model,locals=params)
+        template = discretize(model_params, grid=a)
         def hbar_shape(site):
             x,y = site.tag
             return ((0<=x<self.lx_leg and 0<=y<self.ly_leg) or (0<=x<self.lx_leg and
@@ -37,8 +41,10 @@ class Hbar(Builder):
                                                                                    and
                     self.ly_leg<=y<self.ly_leg+self.ly_neck))
         self.fill(template,hbar_shape,start=(0,0))
-    def attach_lead_byfill(self,continuum_model,pos,conservation_law=None):
-        template = build_discretized(*discretize_symbolic(continuum_model))
+    def attach_lead_byfill(self,continuum_model,params,pos,a=1,conservation_law=None):
+        # template = build_discretized(*discretize_symbolic(continuum_model))
+        model_params = sympify(continuum_model,locals=params)
+        template = discretize(model_params, grid=a)
         if pos.upper() == 'BL':
             bot_left_lead = Builder(TranslationalSymmetry((-1,0)),conservation_law=conservation_law)
             bot_left_lead.fill(template,lambda site: 0 <= site.tag[1] <= self.ly_leg, (0, 1))
@@ -58,7 +64,7 @@ class Hbar(Builder):
         else:
             raise ValueError(f"pos can only be BL, TL, BR, TR (case non-sensitive)")
     def ham_bfield(self,Bfields,num_ev):
-        ''' Find the eigenvalues for each magnetic fifeld value in Bfields. Make sure magnetic
+        ''' Find the eigenvalues for each magnetic field value in Bfields. Make sure magnetic
         field B is implemented in Hamiltonian with symbol B '''
         if self.H == {}:
             return (f"This Hbar system does not contain any sites.")
@@ -80,8 +86,6 @@ if __name__ == '__main__':
     # cProfile.run('test_hbar_from_mk()',sort='time')
 
     test_batch()
-
-
     # fsyst = hbar_from_mk.finalized()
 
     # fig = plt.figure(figsize=(10,6),tight_layout=True)

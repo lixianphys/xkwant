@@ -34,11 +34,15 @@ def get_idos(syst,energy_range,use_kpm=True):
 
     Returns:
     - idos: Integrated density of states.
-    - energy_range: The energy range used for the calculation.
+    - energy_range: The energy range used for the calculation. This is for calculating bands above zero energy, so energy_range should increase from zero.
     """
+    
     if use_kpm:
         energy_resolution = (max(energy_range)-min(energy_range))*5/len(energy_range)
         dos, energies = get_dos_kpm(syst,energy_resolution)
+        dos = np.real(dos) # To extract the real part
+        dos = dos[energies>0] # Ignore DOS below zero energy
+        energies = energies[energies>0]
         idos = cumtrapz(dos,energies,initial=0)
         energy_range = np.array(energy_range)
         energy_range = energies[(energies>=min(energy_range))&(energies<=max(energy_range))] # the energies here should include all possible eigenvalue of energy
@@ -46,7 +50,8 @@ def get_idos(syst,energy_range,use_kpm=True):
         idos= idos[lowest_index : lowest_index+len(energy_range)] # This ensure the returned idos and energy_range have the same length
     else:
         dos = get_dos(syst,energy_range)
-        dos = np.array(dos)
+        dos = np.array(dos) # To extract the real part
+        dos = np.real(dos)
         idos = cumtrapz(dos,energy_range,initial=0)
     return idos, energy_range
 
@@ -68,7 +73,7 @@ def get_dos_kpm(syst,energy_resolution):
     try:
         spectrum.add_moments(energy_resolution=energy_resolution)
     except ValueError as e:
-        pass
+        print("Fall back: Default resolution from kwant.kpm.SpectralDensity is used")
     energies, densities = spectrum()
     dos = [density/syst.area for density in densities]
     return dos, energies
