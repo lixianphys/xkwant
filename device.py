@@ -6,7 +6,6 @@ from kwant.continuum import (discretize, sympify, build_discretized,
                              discretize_symbolic)
 from physics import *
 from batch import *
-from test import *
 import scipy.sparse.linalg as sla
 
 
@@ -76,25 +75,3 @@ class Hbar(Builder):
         return energies
     def set_ham_params(self,params):
         self.ham_params = params
-
-
-if __name__ == '__main__':
-    import cProfile
-
-    # cProfile.run('test_hbar_from_cmodel()',sort='time')
-
-    # cProfile.run('test_hbar_from_mk()',sort='time')
-
-    test_batch()
-    # fsyst = hbar_from_mk.finalized()
-
-    # fig = plt.figure(figsize=(10,6),tight_layout=True)
-    # ax1 = fig.add_subplot(121)
-    # ax2 = fig.add_subplot(122)
-    # kwant.plot(fsyst,ax=ax1)
-    # kwant.plotter.bands(fsyst.leads[0],params=hbar_from_mk.ham_params,ax=ax2)
-
-    # plt.show()
-
-
-

@@ -7,7 +7,7 @@ from batch import *
 from physics import *
 from utils import *
 from templates import *
-from modelEH import prepare_plot
+from scripts import prepare_plot
 
 
 def test_hbar_from_cmodel():

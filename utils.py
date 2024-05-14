@@ -2,6 +2,8 @@ import bisect
 import kwant
 import kwant.kpm
 import numpy as np
+import copy
+import matplotlib.pyplot as plt
 from scipy.integrate import cumtrapz
 
 # __all__ = ['energy_to_density','density_to_energy','get_idos','get_idos_kpm']
@@ -24,7 +26,7 @@ def density_to_energy(idos,energies,density):
         raise ValueError("need more eigenstates")
     return energies[index]
 
-def get_idos(syst,energy_range,use_kpm=True):
+def get_idos(syst,energy_range,use_kpm=False):
     """
     Calculate the integrated density of states (IDOS) for a given system over a specified energy range.
 
@@ -39,6 +41,10 @@ def get_idos(syst,energy_range,use_kpm=True):
     
     if use_kpm:
         energy_resolution = (max(energy_range)-min(energy_range))*5/len(energy_range)
+        # if len(syst.leads)!=0: 
+        #     print('len(syst.leads)!=0')
+        #     syst = copy.deepcopy(syst) # create a copy for later manipulation, do not alter the input Builder instance
+        #     syst.leads = [] # remove all leads for using get_dos_kpm
         dos, energies = get_dos_kpm(syst,energy_resolution)
         dos = np.real(dos) # To extract the real part
         dos = dos[energies>0] # Ignore DOS below zero energy
@@ -78,4 +84,19 @@ def get_dos_kpm(syst,energy_resolution):
     dos = [density/syst.area for density in densities]
     return dos, energies
 
+############### Plot ###############################
 
+def prepare_plot(xlabel:str,xlim:tuple,ylabel=None, ylabel2=None, figsize=(10,6)):
+    ''' prepare axes for complex plots'''
+    _, axs = plt.subplots(2,2,figsize=figsize,tight_layout=True)
+    [ax.set_xlabel(xlabel) for ax in axs[:,0]]
+    [ax.set_xlim(*xlim) for ax in axs[:,0]]
+    if ylabel is None:
+        axs[0,0].set_ylabel('$\Delta V_{34}(\lambda)$ [$\mu$V]')
+    else:
+        axs[0,0].set_ylabel(ylabel)
+    if ylabel2 is None:
+        axs[1,0].set_ylabel('$G_{SH}$ [e/8$\pi$]')
+    else:
+        axs[1,0].set_ylabel(ylabel2)
+    return axs

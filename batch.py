@@ -9,7 +9,8 @@ from utils import get_idos
 __all__ = ['j_at_terminal',
            'vary_energy_vvector_4t','vary_energy_vvector_6t',
            'varyx_voltage_4t','varyx_voltage_6t',
-           'varyx_rho_j_energy_site','varyx_idos']
+           'varyx_rho_j_energy_site','varyx_idos',
+           'vvector_4t','vvector_6t','rho_j_energy_site']
 
 
 def j_at_terminal(syst, wf_lead, which_terminal):
@@ -78,16 +79,16 @@ def j_at_site(syst, wf_lead):
     return (j_operator(mode) for mode in wf_lead)
 
 def rho_j_energy_site(syst,energy:float):
-    '''Calculate charge density/curent on each site'''
+    '''Calculate charge density/curent on each site at a specific energy'''
     fsyst = syst.finalized()
     # Determine the size of the arrays needed
     wf = kwant.wave_function(fsyst, energy=energy)
     sample_wf = wf(0)
-    if len(sample_wf) == 0:
+    if len(sample_wf) == 0: # the mode number == 0
         return None, None
     # print(f"At energy={energy},sample_wf.shape={sample_wf.shape}")
     max_num_modes = sample_wf.shape[0]
-    site_num = int(sample_wf.shape[1]//2)  # the length of each mode including two orbitals is twice the number of sites
+    site_num = sample_wf.shape[1]//2  # the length of each mode including two orbitals is twice the number of sites
     j_operator = kwant.operator.Current(fsyst, sum=False)
     j_num = len(j_operator(sample_wf[0]))
     num_leads = len(syst.leads)
@@ -95,11 +96,10 @@ def rho_j_energy_site(syst,energy:float):
     rho_site = np.zeros((num_leads, max_num_modes, site_num))
     j_site = np.zeros((num_leads, max_num_modes, j_num))
 
-    num_modes =wf(0).shape[0]
     for which_lead in range(num_leads):
         modes = wf(which_lead)
-        for mode_idx, rho_idx, j_idx in zip(range(num_modes), rho_at_site(syst, modes), j_at_site(syst, modes)):
-            rho_site[which_lead, mode_idx] = rho_idx
+        for mode_idx, rho_idx, j_idx in zip(range(len(modes)), rho_at_site(syst, modes), j_at_site(syst, modes)):
+            rho_site[which_lead, mode_idx] = rho_idx  # rho_site[#lead][#mode][#site]
             j_site[which_lead, mode_idx] = j_idx
     return rho_site, j_site
 
