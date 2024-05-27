@@ -10,6 +10,7 @@ from xkwant.utils import *
 from xkwant.log import log_function_call
 
 
+
 @log_function_call
 def rashba_vary_lambda(
     lamd=np.linspace(0, 80, 2),

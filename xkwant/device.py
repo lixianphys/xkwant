@@ -1,7 +1,7 @@
 from kwant import Builder, TranslationalSymmetry
 from kwant.continuum import discretize, sympify, build_discretized, discretize_symbolic
-from physics import *
-from batch import *
+from .physics import *
+from .batch import *
 import scipy.sparse.linalg as sla
 
 
@@ -11,11 +11,14 @@ __all__ = ["Hbar"]
 class Hbar(Builder):
     def __init__(self, geo_params):
         super(Hbar, self).__init__()
-        self.lx_leg = geo_params["lx_leg"]
+        self.lx_leg = geo_params["lx_leg"]  # in units of a, the lattice constant
         self.ly_leg = geo_params["ly_leg"]
         self.lx_neck = geo_params["lx_neck"]
         self.ly_neck = geo_params["ly_neck"]
-        self.area = self.lx_leg * self.ly_leg * 2 + self.lx_neck * self.ly_neck
+        self.a = geo_params["a"]
+        self.area = self.lx_leg * self.ly_leg * 2 + self.lx_neck * self.ly_neck * (
+            self.a**2
+        )
         self.ham_params = dict()
 
     def __str__(self):
@@ -29,11 +32,11 @@ class Hbar(Builder):
             f"Hamitonian parameters: {formatted_ham_params}"
         )
 
-    def build_byfill(self, continuum_model, params, a=1):
+    def build_byfill(self, continuum_model, params):
         self.set_ham_params(params)
         # template = build_discretized(*discretize_symbolic(continuum_model))
         model_params = sympify(continuum_model, locals=params)
-        template = discretize(model_params, grid=a)
+        template = discretize(model_params, grid=self.a)
 
         def hbar_shape(site):
             x, y = site.tag
@@ -53,12 +56,10 @@ class Hbar(Builder):
 
         self.fill(template, hbar_shape, start=(0, 0))
 
-    def attach_lead_byfill(
-        self, continuum_model, params, pos, a=1, conservation_law=None
-    ):
+    def attach_lead_byfill(self, continuum_model, params, pos, conservation_law=None):
         # template = build_discretized(*discretize_symbolic(continuum_model))
         model_params = sympify(continuum_model, locals=params)
-        template = discretize(model_params, grid=a)
+        template = discretize(model_params, grid=self.a)
         if pos.upper() == "BL":
             bot_left_lead = Builder(
                 TranslationalSymmetry((-1, 0)), conservation_law=conservation_law

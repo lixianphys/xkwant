@@ -3,8 +3,8 @@ import numpy as np
 from copy import copy
 from typing import Iterable
 from tqdm import tqdm
-from physics import *
-from utils import get_idos
+from .physics import *
+from .utils import get_idos
 
 __all__ = [
     "j_at_terminal",

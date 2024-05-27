@@ -1,11 +1,11 @@
 import kwant
 import random
 import numpy as np
-from physics import *
+from .physics import *
 
 
 def mkhbar_4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None):
-    from device import Hbar  # place this inside function to avoid circular import
+    from .device import Hbar  # place this inside function to avoid circular import
 
     """ Return a hbar-shaped FiniteSystem or Builder() with four terminals"""
     syst = Hbar(geop)
@@ -15,13 +15,14 @@ def mkhbar_4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=
     ws, wl = hamp_sys["ws"], hamp_lead["wl"]
     vs, vl = hamp_sys["vs"], hamp_lead["vl"]
     ms, ml = hamp_sys["ms"], hamp_lead["ml"]
-    # hamiltonian parameters only belong to the scattering region: lattice constant a, disorder strength Wdis
-    Wdis, a = hamp_sys["Wdis"], hamp_sys["a"]
+    # hamiltonian parameters only belong to the scattering region: disorder strength Wdis
+    Wdis = hamp_sys["Wdis"]
     # Geometric parameters for the scattering region
     lx_leg = geop["lx_leg"]
     ly_leg = geop["ly_leg"]
     lx_neck = geop["lx_neck"]
     ly_neck = geop["ly_neck"]
+    a = geop["a"]  # lattice constant a
 
     lat = kwant.lattice.square(a, norbs=2)
 
@@ -129,8 +130,8 @@ def mkhbar_6t(geop, hamp_sys, hamp_lead, finalized=False):
     tl = hamp_lead["tl"]
     wl = hamp_lead["wl"]
     vl = hamp_lead["vl"]
-    a = hamp_sys["a"]
     ml = hamp_lead["ml"]
+    a = geop["a"]
     lx_leg = syst.lx_leg
     lx_neck = syst.lx_neck
 
@@ -185,8 +186,9 @@ def mkhbar_b4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law
     vs, vl = hamp_sys["vs"], hamp_lead["vl"]
     ms, ml = hamp_sys["ms"], hamp_lead["ml"]
     # hamiltonian parameters only belong to the scattering region: lattice constant a, disorder strength Wdis
-    Wdis, a = hamp_sys["Wdis"], hamp_sys["a"]
+    Wdis = hamp_sys["Wdis"]
     # Geometric parameters for the scattering region
+    a = geop["a"]
     lx_leg = geop["lx_leg"]
     ly_leg = geop["ly_leg"]
     lx_neck = geop["lx_neck"]

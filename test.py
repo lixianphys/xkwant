@@ -6,7 +6,7 @@ from xkwant.batch import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.templates import *
-from scripts import prepare_plot
+from scripts.May20 import prepare_plot
 
 
 def test_hbar_from_cmodel():

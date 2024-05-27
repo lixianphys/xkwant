@@ -29,7 +29,7 @@ def density_to_energy(idos, energies, density):
     return energies[index]
 
 
-def get_idos(syst, energy_range, use_kpm=False):
+def get_idos(syst, energy_range, use_kpm=True):
     """
     Calculate the integrated density of states (IDOS) for a given system over a specified energy range.
 
