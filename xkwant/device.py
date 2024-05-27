@@ -18,7 +18,7 @@ class Hbar(Builder):
         self.a = geo_params["a"]
         self.area = (self.lx_leg * self.ly_leg * 2 + self.lx_neck * self.ly_neck) * (
             self.a**2
-        )
+        )  # This area in units of nm^2 can be used for estimating the carrier density
         self.ham_params = dict()
 
     def __str__(self):

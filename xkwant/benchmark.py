@@ -36,10 +36,10 @@ def benchmark_model(model_size):
     hamp_lead = dict(tl=0, wl=0.1, vl=0.3, ml=0.05)
 
     syst = mkhbar_4t(geop, hamp_sys, hamp_lead)  # This system won't be changed anymore
-    density_to_energy(*get_idos(syst, energy_range), 0.01)
-    energy = np.mean(energy_range)
-    vvector_4t(syst, energy, [0, 0, Iin, -Iin])
-    rho_j_energy_site(syst, energy)
+    get_idos(syst, energy_range)
+    # energy = np.mean(energy_range)
+    # vvector_4t(syst, energy, [0, 0, Iin, -Iin])
+    # rho_j_energy_site(syst, energy)
 
     end_time = time.time()
 
@@ -71,26 +71,26 @@ if __name__ == "__main__":
     import pandas as pd
     import matplotlib.pyplot as plt
 
-    model_sizes = np.arange(10, 80, 10, dtype=int)
+    model_sizes = [10, 10, 20, 50, 100, 200]
     results = run_benchmark(model_sizes)
     # Convert results to a DataFrame
     df = pd.DataFrame(results)
+    print(df)
     # Plot the results
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
     ax1.plot(
-        df["model_size"].tolist(),
-        df["execution_time"].tolist(),
+        df["model_size"].tolist()[1:],
+        df["execution_time"].tolist()[1:],
         label=f"Execution Time",
     )
     ax2.plot(
-        df["num_sites"].tolist(), df["execution_time"].tolist(), label=f"Memory Usage"
+        df["num_sites"].tolist()[1:],
+        df["execution_time"].tolist()[1:],
+        label=f"Memory Usage",
     )
 
     ax1.set_xlabel("Model Size")
     ax2.set_xlabel("Number of Sites")
     ax1.set_ylabel("Execution Time")
     ax2.set_ylabel("Execution Time")
-
-    # plt.legend()
-    plt.title("Benchmark Results")
     plt.show()
