@@ -5,10 +5,7 @@
 import time
 import psutil
 
-import kwant
 import os
-import sys
-import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -28,10 +25,14 @@ def benchmark_model(model_size):
     N1 = model_size
     L = 90 / 36 * N1
     geop = dict(
-        lx_leg=int(N1), ly_leg=int(N1 / 6), lx_neck=int(N1 / 6), ly_neck=int(N1 / 6)
+        a=L / N1,
+        lx_leg=int(N1),
+        ly_leg=int(N1 / 6),
+        lx_neck=int(N1 / 6),
+        ly_neck=int(N1 / 6),
     )
 
-    hamp_sys = dict(ts=0, ws=0.1, vs=0.3, ms=0.05, Wdis=0, a=L / N1)
+    hamp_sys = dict(ts=0, ws=0.1, vs=0.3, ms=0.05, Wdis=0)
     hamp_lead = dict(tl=0, wl=0.1, vl=0.3, ml=0.05)
 
     syst = mkhbar_4t(geop, hamp_sys, hamp_lead)  # This system won't be changed anymore
@@ -46,7 +47,7 @@ def benchmark_model(model_size):
 
     execution_time = end_time - start_time
     memory_usage = memory_after - memory_before
-    num_sites = syst.area
+    num_sites = syst.area / geop["a"] ** 2
 
     return num_sites, execution_time, memory_usage
 

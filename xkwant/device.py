@@ -16,7 +16,7 @@ class Hbar(Builder):
         self.lx_neck = geo_params["lx_neck"]
         self.ly_neck = geo_params["ly_neck"]
         self.a = geo_params["a"]
-        self.area = self.lx_leg * self.ly_leg * 2 + self.lx_neck * self.ly_neck * (
+        self.area = (self.lx_leg * self.ly_leg * 2 + self.lx_neck * self.ly_neck) * (
             self.a**2
         )
         self.ham_params = dict()
