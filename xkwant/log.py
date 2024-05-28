@@ -36,7 +36,7 @@ def log_function_call(func):
         for i, arg in enumerate(args):
             if hasattr(arg, "__dict__"):  # Check if the argument is a class instance
                 logger.info(
-                    f"Arg {i} is an instance of {arg.__class__.__name__} with properties {arg.__dict__}"
+                    f"Arg {i} is an instance of {arg.__class__.__name__} with properties {', '.join(f'{key} = {value}' for key, value in arg.__dict__.items() if key != 'H')}"
                 )
             else:
                 logger.info(f"Arg {i}: {arg}")
@@ -45,7 +45,7 @@ def log_function_call(func):
         for key, value in kwargs.items():
             if hasattr(value, "__dict__"):  # Check if the argument is a class instance
                 logger.info(
-                    f"Keyword arg {key} is an instance of {value.__class__.__name__} with properties {value.__dict__}"
+                    f"Keyword arg {key} is an instance of {value.__class__.__name__} with properties {', '.join(f'{key} = {kvalue}' for key, kvalue in value.__dict__.items() if key != 'H')}"
                 )
             else:
                 logger.info(f"Keyword arg {key}: {value}")
