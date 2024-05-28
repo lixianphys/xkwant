@@ -75,7 +75,6 @@ if __name__ == "__main__":
     results = run_benchmark(model_sizes)
     # Convert results to a DataFrame
     df = pd.DataFrame(results)
-    print(df)
     # Plot the results
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6))
     ax1.plot(
@@ -88,7 +87,6 @@ if __name__ == "__main__":
         df["execution_time"].tolist()[1:],
         label=f"Memory Usage",
     )
-
     ax1.set_xlabel("Model Size")
     ax2.set_xlabel("Number of Sites")
     ax1.set_ylabel("Execution Time")
