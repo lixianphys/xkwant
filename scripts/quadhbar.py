@@ -3,6 +3,7 @@ import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
+import palettable
 from xkwant.batch import *
 from xkwant.templates import *
 from xkwant.physics import *
@@ -69,7 +70,7 @@ def main(
                         )
                     ),
                     ax=axs[0, 1],
-                    cmap="jet",
+                    cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
                 )
                 if plot_single_lead:
                     kwant.plotter.current(
@@ -78,7 +79,7 @@ def main(
                             sum(J_site[3][mode_num] for mode_num in range(total_modes))
                         ),
                         ax=axs[1, 1],
-                        cmap="jet",
+                        cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
                         linecolor="w",
                     )  # electron flow from this lead (grounded) to others
                 else:
@@ -91,7 +92,7 @@ def main(
                             for mode_num in range(total_modes)
                         ),
                         ax=axs[1, 1],
-                        cmap="jet",
+                        cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
                         linecolor="w",
                     )
                 x = [density * 1e3 for density in densities]
@@ -128,11 +129,11 @@ if __name__ == "__main__":
 
     # rvl_l, rvl_v12, rvl_v34 = rashba_vary_lambda(lamd = np.arange(0,320,30),single_lead_current=True,target_density = 0.01,savepath='plots/rashba_vary_lambda')
     densities = np.arange(0.001, 0.009, 0.0002)
-    plot_local_quantity = False
+    plot_local_quantity = True
     plot_single_lead = True
     Iin = 10e-9  # A
     # grid parameters
-    N1, L = 72, 72
+    N1, L = 72, 72 * 0.646
     # core parameters
     geop = dict(
         a=L / N1,
