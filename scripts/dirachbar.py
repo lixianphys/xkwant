@@ -255,7 +255,7 @@ def main(
                 plt.savefig(
                     os.path.join(
                         savepath,
-                        f"rashba_lamb_{lambda_val}_density_{densities[i]:0.5f}.png",
+                        f"dirac_lamb_{lambda_val}_density_{densities[i]:0.5f}.png",
                     )
                 )
                 plt.close(fig)  # to avoid 'figure.max_open_warning'
@@ -271,13 +271,13 @@ if __name__ == "__main__":
 
     from datetime import datetime
 
-    densities = np.arange(0.001, 0.009, 0.001)
-    lambda_val = 100
-    plot_local_quantity = True
+    densities = np.arange(0.001, 0.009, 0.0002)
+    lambda_val = 300
+    plot_local_quantity = False
     plot_single_lead = True
     Iin = 10e-9  # A
     # grid parameters
-    N1, L = 36, 36
+    N1, L = 72, 72
     # core parameters
     geop = dict(
         a=L / N1,
@@ -289,7 +289,7 @@ if __name__ == "__main__":
     hamp_sys = dict(ts=0, ws=lambda_val / 3e3, vs=lambda_val / 1e3, ms=0.05, Wdis=0)
     hamp_lead = dict(tl=0, wl=lambda_val / 3e3, vl=lambda_val / 1e3, ml=0.05)
     syst = mkhbar_4t(geop, hamp_sys, hamp_lead)  # This system won't be changed anymore
-    idos_energy_range = np.arange(0, 0.15, 0.001)
+    idos_energy_range = np.arange(0, 0.16, 0.0001)
     idos_kpm = False
 
     vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
@@ -322,13 +322,5 @@ if __name__ == "__main__":
 
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M")
-    with open(
-        f"data_scriptname_{os.path.basename(__file__)}_timestamp_{timestamp}.pkl", "wb"
-    ) as f:
+    with open(f"data_{os.path.basename(__file__)}_{timestamp}.pkl", "wb") as f:
         pickle.dump(data, f)
-    plt.plot(data["densities"], data["voltage_V12"])
-    plt.show()
-    plt.plot(data["densities"], data["voltage_V34"])
-    plt.show()
-    plt.plot(data["idos_energy_range"], data["idos"])
-    plt.show()

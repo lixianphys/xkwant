@@ -3,3 +3,5 @@ __pycache__/
 plots/
 *.pkl
 *.log
+*.sh
+*.png
