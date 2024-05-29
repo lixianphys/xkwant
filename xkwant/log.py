@@ -1,6 +1,7 @@
 import functools
 import logging
 import os
+import sys
 
 
 def log_function_call(func):
@@ -29,6 +30,10 @@ def log_function_call(func):
 
         # Add the handler to the logger
         logger.addHandler(fh)
+
+        # Log the script name
+        script_name = os.path.basename(sys.argv[0])
+        logger.info(f"Script {script_name} started.")
 
         logger.info(f"Function {func.__name__} called.")
 
