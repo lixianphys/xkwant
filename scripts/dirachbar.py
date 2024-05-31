@@ -3,12 +3,12 @@ import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-import palettable
 from xkwant.batch import *
 from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
+from xkwant.config import DEFAULT_CMAP
 
 
 @log_function_call
@@ -106,7 +106,7 @@ def dirac_vary_lambda(
                     )
                 ),
                 ax=axs[0, 1],
-                cmap="jet",
+                cmap=DEFAULT_CMAP,
             )
             if single_lead_current:
                 kwant.plotter.current(
@@ -115,7 +115,7 @@ def dirac_vary_lambda(
                         sum(J_site[3][mode_num] for mode_num in range(total_modes))
                     ),
                     ax=axs[1, 1],
-                    cmap="jet",
+                    cmap=DEFAULT_CMAP,
                     linecolor="w",
                 )  # electron flow from this lead (grounded) to others
             else:
@@ -128,7 +128,7 @@ def dirac_vary_lambda(
                         for mode_num in range(total_modes)
                     ),
                     ax=axs[1, 1],
-                    cmap="jet",
+                    cmap=DEFAULT_CMAP,
                     linecolor="w",
                 )
             axs[0, 0].plot(lamd, deltaV12_inmuV)
@@ -215,7 +215,7 @@ def main(
                         )
                     ),
                     ax=axs[0, 1],
-                    cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
+                    cmap=DEFAULT_CMAP,
                 )
                 if plot_single_lead:
                     kwant.plotter.current(
@@ -224,7 +224,7 @@ def main(
                             sum(J_site[3][mode_num] for mode_num in range(total_modes))
                         ),
                         ax=axs[1, 1],
-                        cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
+                        cmap=DEFAULT_CMAP,
                         linecolor="w",
                     )  # electron flow from this lead (grounded) to others
                 else:
@@ -237,7 +237,7 @@ def main(
                             for mode_num in range(total_modes)
                         ),
                         ax=axs[1, 1],
-                        cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
+                        cmap=DEFAULT_CMAP,
                         linecolor="w",
                     )
                 x = [density * 1e3 for density in densities]

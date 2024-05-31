@@ -9,6 +9,7 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
+from xkwant.config import DEFAULT_CMAP
 
 
 @log_function_call
@@ -79,7 +80,7 @@ def main(
                             sum(J_site[3][mode_num] for mode_num in range(total_modes))
                         ),
                         ax=axs[1, 1],
-                        cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
+                        cmap=DEFAULT_CMAP,
                         linecolor="w",
                     )  # electron flow from this lead (grounded) to others
                 else:
@@ -92,7 +93,7 @@ def main(
                             for mode_num in range(total_modes)
                         ),
                         ax=axs[1, 1],
-                        cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
+                        cmap=DEFAULT_CMAP,
                         linecolor="w",
                     )
                 x = [density * 1e3 for density in densities]
