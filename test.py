@@ -6,8 +6,28 @@ from xkwant.batch import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.templates import *
-from scripts.May20 import prepare_plot
 
+##########################
+###### Tests for Templates
+def test_doubledirac_mkhbar_4t():
+    from xkwant.device import Hbar
+
+    geop = dict(a=1, lx_leg=30, ly_leg=30, lx_neck=15, ly_neck=15)
+    ham_sys = dict(ws=0.1, vs=0.3, invs=0, hybs=0.1)
+    ham_lead = dict(wl=0.1, vl=0.3, invl=0, hybl=0.1)
+    fsyst = doubledirac_mkhbar_4t(geop, ham_sys, ham_lead, True)
+    kwant.plotter.bands(fsyst.leads[0], momenta=np.linspace(-3,3,100))
+
+
+def test_gappeddirac_mkhbar_4t():
+    from xkwant.device import Hbar
+
+    geop = dict(a=1, lx_leg=30, ly_leg=30, lx_neck=15, ly_neck=15)
+    ham_sys = dict(ts=0, ws=0.1, vs=0.3, ms=0.05, Wdis=0, ds = 0.1)
+    ham_lead = dict(tl=0, wl=0.1, vl=0.3, ml=0.05, dl = 0.1)
+    fsyst = gappeddirac_mkhbar_4t(geop, ham_sys, ham_lead, True)
+    kwant.plotter.bands(fsyst.leads[0], momenta=np.linspace(-1,1,100))  
+##########################
 
 def test_hbar_from_cmodel():
     from xkwant.device import Hbar
@@ -201,9 +221,11 @@ if __name__ == "__main__":
     start_time = time.time()
     # test_batch()
     # test_dirac_vary_lambda()
-    test_get_idos()
+    # test_get_idos()
+    # test_doubledirac_mkhbar_4t()
     # test_hbar_from_cmodel()
     # test_add_peierls_phase()
     # test_tb_magnetic_field()
+    test_gappeddirac_mkhbar_4t()
     end_time = time.time()
     print(end_time - start_time)
