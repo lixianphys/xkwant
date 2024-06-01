@@ -1,0 +1,2 @@
+Kwant is a Python package for numerical calculations on tight-binding models as presented in their [offical website](https://kwant-project.org/about). It also allows developers to build tools on top of this framework. Here I have built several tools to do batch calcuations, device construction, log script info, etc. All these tools allow me to do tight-binding calculation in a complex context without misusing many parameters.
+ 
