@@ -3,7 +3,6 @@ import os
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
-import palettable
 from xkwant.batch import *
 from xkwant.templates import *
 from xkwant.physics import *
@@ -71,7 +70,7 @@ def main(
                         )
                     ),
                     ax=axs[0, 1],
-                    cmap=palettable.scientific.sequential.Bilbao_20.mpl_colormap,
+                    cmap=DEFAULT_CMAP,
                 )
                 if plot_single_lead:
                     kwant.plotter.current(
@@ -129,7 +128,7 @@ if __name__ == "__main__":
     from datetime import datetime
 
     # rvl_l, rvl_v12, rvl_v34 = rashba_vary_lambda(lamd = np.arange(0,320,30),single_lead_current=True,target_density = 0.01,savepath='plots/rashba_vary_lambda')
-    densities = np.arange(0.001, 0.009, 0.0002)
+    densities = np.arange(0.001, 0.009, 0.001)
     plot_local_quantity = True
     plot_single_lead = True
     Iin = 10e-9  # A
@@ -147,7 +146,7 @@ if __name__ == "__main__":
     hamp_lead = dict(tl=tk, wl=0, vl=0, ml=0.05)
     syst = mkhbar_4t(geop, hamp_sys, hamp_lead)  # This system won't be changed anymore
     idos_energy_range = np.arange(0, 0.2, 0.001)
-    idos_kpm = False
+    idos_kpm = True
 
     vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
         syst,
