@@ -8,7 +8,7 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-from xkwant.config import DEFAULT_CMAP
+from xkwant.config import DEFAULT_CMAP, LATTICE_CONST_HGTE
 
 
 @log_function_call
@@ -272,13 +272,16 @@ if __name__ == "__main__":
 
     from datetime import datetime
 
-    densities = np.arange(0.001, 0.009, 0.001)
-    lambda_val = 300
-    plot_local_quantity = True
+    lambda_val = 0.28
+    densities = np.arange(0.001, 0.009, 0.0005)
+    idos_energy_range = np.arange(0, 0.3, 0.0001)
+    plot_local_quantity = False
     plot_single_lead = True
+    idos_kpm = True
     Iin = 10e-9  # A
     # grid parameters
-    N1, L = 200, 200 * 0.646
+    N1 = 300
+    L = N1 * LATTICE_CONST_HGTE
     # core parameters
     geop = dict(
         a=L / N1,
@@ -287,54 +290,72 @@ if __name__ == "__main__":
         lx_neck=int(N1 / 6),
         ly_neck=int(N1 / 6),
     )
-    hamp_sys = dict(
-        ts=0, ws=lambda_val / 3e3, vs=lambda_val / 1e3, ds=0.05, ms=0.05, Wdis=0
-    )
-    hamp_lead = dict(tl=0, wl=lambda_val / 3e3, vl=lambda_val / 1e3, dl=0.05, ml=0.05)
-    syst = gappeddirac_mkhbar_4t(
-        geop, hamp_sys, hamp_lead
-    )  # This system won't be changed anymore
-    idos_energy_range = np.arange(0, 0.16, 0.0001)
-    idos_kpm = True
+    for gap in np.arange(0, 0.11, 0.01):
+        try:
+            hamp_sys = dict(ts=0, ws=0.1, vs=lambda_val, ds=gap, ms=0.05, Wdis=0)
+            hamp_lead = dict(tl=0, wl=0.1, vl=lambda_val, dl=gap, ml=0.05)
+            syst = gappeddirac_mkhbar_4t(
+                geop, hamp_sys, hamp_lead
+            )  # This system won't be changed anymore
 
-    vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
-        syst,
-        densities=densities,
-        lambda_val=lambda_val,
-        idos_energy_range=idos_energy_range,
-        Iin=Iin,
-        idos_kpm=idos_kpm,
-        plot_local_quantity=plot_local_quantity,
-        plot_single_lead=plot_single_lead,
-        # savepath="plots/rashba_vary_density",
-    )
+            vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
+                syst,
+                densities=densities,
+                lambda_val=lambda_val,
+                idos_energy_range=idos_energy_range,
+                Iin=Iin,
+                idos_kpm=idos_kpm,
+                plot_local_quantity=plot_local_quantity,
+                plot_single_lead=plot_single_lead,
+                # savepath="plots/rashba_vary_density",
+            )
 
-    data = {
-        "densities": densities,
-        "lambda_val": lambda_val,
-        "idos": idos,
-        "idos_energy_range": idos_energy_range,
-        "Iin": Iin,
-        "idos_kpm": idos_kpm,
-        "N1": N1,
-        "L": L,
-        "geometric_params": geop,
-        "hamiltonian_params_sys": hamp_sys,
-        "hamiltonian_params_lead": hamp_lead,
-        "voltage_V12": vd_v12,
-        "voltage_V34": vd_v34,
-    }
+            data = {
+                "densities": densities,
+                "lambda_val": lambda_val,
+                "idos": idos,
+                "idos_energy_range": idos_energy_range,
+                "Iin": Iin,
+                "idos_kpm": idos_kpm,
+                "N1": N1,
+                "L": L,
+                "geometric_params": geop,
+                "hamiltonian_params_sys": hamp_sys,
+                "hamiltonian_params_lead": hamp_lead,
+                "voltage_V12": vd_v12,
+                "voltage_V34": vd_v34,
+            }
 
-    now = datetime.now()
-    timestamp = now.strftime("%Y%m%d_%H%M")
-    with open(f"data_{os.path.basename(__file__)}_{timestamp}.pkl", "wb") as f:
-        pickle.dump(data, f)
+            now = datetime.now()
+            timestamp = now.strftime("%Y%m%d_%H%M")
+            with open(
+                f"data/gappeddirac_data/dt_{os.path.basename(__file__)}_gap_{gap}_{timestamp}.pkl",
+                "wb",
+            ) as f:
+                pickle.dump(data, f)
+        except ValueError as e:
+            print(f"Calculation for gap={gap} failed, but continue..")
+            continue
 
-    kwant.plotter.bands(syst.finalized().leads[0])
-    plt.show()
-    plt.plot(data["densities"], data["voltage_V12"])
-    plt.show()
-    plt.plot(data["densities"], data["voltage_V34"])
-    plt.show()
-    plt.plot(data["idos_energy_range"], data["idos"])
-    plt.show()
+    # max_eng, min_eng = density_to_energy(
+    #     idos, idos_energy_range, max(densities)
+    # ), density_to_energy(idos, idos_energy_range, min(densities))
+
+    # fig, axes = plt.subplots(2, 2, figsize=(12, 12), tight_layout=True)
+    # kwant.plotter.bands(syst.finalized().leads[0], ax=axes[0][0])
+    # axes[0][0].axhline(y=max_eng, linestyle="--")
+    # axes[0][0].axhline(y=min_eng, linestyle="--")
+
+    # axes[0][1].plot(data["densities"], data["voltage_V12"], color="k")
+    # axes[0][1].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
+    # axes[0][1].set_xlabel("Density [nm$^{-2}$]")
+    # axes[0][1].set_ylabel("V34 [$\\mu$V]")
+    # axes[1][1].plot(data["densities"], data["voltage_V34"], color="k")
+    # axes[1][1].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
+    # axes[1][1].set_xlabel("Density [nm$^{-2}$]")
+    # axes[1][1].set_ylabel("V12 [$\\mu$V]")
+    # axes[1][0].plot(data["idos"], data["idos_energy_range"], color="k")
+    # axes[1][0].scatter(data["idos"], data["idos_energy_range"], s=15, color="r")
+    # axes[1][0].set_xlabel("Density [nm$^{-2}$]")
+    # axes[1][0].set_ylabel("Energy [eV]")
+    # plt.show()

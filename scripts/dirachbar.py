@@ -191,7 +191,6 @@ def main(
         for i, (energy, voltages) in enumerate(zip(target_energies, voltages_list)):
             rho_site, J_site = rho_j_energy_site(syst, energy)
             fsyst = syst.finalized()
-            print(f"hamp_sys:{hamp_sys}")
             if rho_site is not None:
                 total_modes = len(rho_site[0])
                 print(

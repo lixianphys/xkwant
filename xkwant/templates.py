@@ -32,14 +32,21 @@ def doubledirac_mkhbar_4t(
     lat = kwant.lattice.square(a, norbs=4)
     tau_0 = s_0
     tau_x = s_x
-    tau_y = s_y
     tau_z = s_z
 
-    def onsite(site): 
-        return 4 * ws * np.kron(s_z, tau_0) + invs * np.kron(s_0, tau_z) + hybs * np.kron(s_0, tau_x)
+    def onsite(site):
+        return (
+            4 * ws * np.kron(s_z, tau_0)
+            + invs * np.kron(s_0, tau_z)
+            + hybs * np.kron(s_0, tau_x)
+        )
 
     def lead_onsite(site):
-        return 4 * wl * np.kron(s_z, tau_0)+ invl * np.kron(s_0, tau_z) + hybl * np.kron(s_0, tau_x)
+        return (
+            4 * wl * np.kron(s_z, tau_0)
+            + invl * np.kron(s_0, tau_z)
+            + hybl * np.kron(s_0, tau_x)
+        )
 
     def hop_x(site1, site2):
         return 1j * vs / (2 * a) * np.kron(s_y, tau_z) - ws * np.kron(s_z, tau_0)
@@ -129,7 +136,8 @@ def doubledirac_mkhbar_4t(
         return syst.finalized()
     else:
         return syst
-    
+
+
 def gappeddirac_mkhbar_4t(
     geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None
 ):
@@ -276,7 +284,7 @@ def mkhbar_4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=
 
     lat = kwant.lattice.square(a, norbs=2)
 
-    def onsite(site): 
+    def onsite(site):
         rand_num = random.uniform(-1, 1)
         return (4 * ts / (ms * a**2) + Wdis * rand_num) * s_0 + 4 * ws * s_z
 
