@@ -48,13 +48,13 @@ if __name__ == "__main__":
     from datetime import datetime
 
     # rvl_l, rvl_v12, rvl_v34 = rashba_vary_lambda(lamd = np.arange(0,320,30),single_lead_current=True,target_density = 0.01,savepath='plots/rashba_vary_lambda')
-    densities = np.arange(0.001, 0.009, 0.0005)
-    idos_energy_range = np.arange(0, 0.3, 0.0001)
+    densities = np.arange(0.001, 0.009, 0.0002)
+    idos_energy_range = np.arange(0, 0.2, 0.002)
     Iin = 10e-9  # A
     # grid parameters
     N1 = 300  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
-    idos_kpm = True
+    idos_kpm = False
     # core parameters
     geop = dict(
         a=L / N1,
@@ -64,14 +64,8 @@ if __name__ == "__main__":
         ly_neck=int(N1 / 6),
     )
 
-    for einv in [0.06]:
-        # if einv == 0.06:
-        # ehyb_range = [0]
-        # elif einv == 0.08:
-        #     ehyb_range = [0]
-        # else:
-        #     ehyb_range = np.arange(0, 0.12, 0.02)
-        for ehyb in [0]:
+    for einv in np.arange(0, 0.12, 0.02):
+        for ehyb in np.arange(0, 0.12, 0.02):
             try:
                 hamp_sys = dict(
                     ws=0.1, vs=0.28, invs=einv, hybs=ehyb
@@ -112,13 +106,13 @@ if __name__ == "__main__":
                     pickle.dump(data, f)
             except ValueError as e:
                 print(
-                    f"Calculation for einv={einv} and ehyb={ehyb} failed, but continue.."
+                    f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
                 )
                 continue
 
-    # max_eng, min_eng = density_to_energy(
-    #     idos, idos_energy_range, max(densities)
-    # ), density_to_energy(idos, idos_energy_range, min(densities))
+    max_eng, min_eng = density_to_energy(
+        idos, idos_energy_range, max(densities)
+    ), density_to_energy(idos, idos_energy_range, min(densities))
 
     # fig, axes = plt.subplots(2, 2, figsize=(12, 12), tight_layout=True)
     # kwant.plotter.bands(syst.finalized().leads[0], ax=axes[0][0])

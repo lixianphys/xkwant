@@ -10,23 +10,35 @@ from scipy.integrate import cumtrapz
 
 def find_position(sorted_list, x):
     index = bisect.bisect_left(sorted_list, x)
-    if index != len(sorted_list):
+    if index != len(
+        sorted_list
+    ):  # Normal: x is not larger than all elements in sorted_list.
         return index
-    return -1
+    return (
+        -1
+    )  # x is larger than all elements in sorted_list, return -1 to indicate error
 
 
 def energy_to_density(idos, energies, energy):
     index = find_position(energies, energy)
     if index == -1:
-        raise ValueError("need more eigenstates")
-    return idos[index]
+        raise ValueError(
+            "The given energy is too high to predict its corresponding density. Add more DOS values at higher energies in idos"
+        )
+    return (
+        idos[index] + idos[index + 1]
+    ) / 2  # Assign the mean of two closest values to its prediction
 
 
 def density_to_energy(idos, energies, density):
     index = find_position(idos, density)
     if index == -1:
-        raise ValueError("need more eigenstates")
-    return energies[index]
+        raise ValueError(
+            "The given density is too high to predict its corresponding energy. Add more DOS values at higher energies in idos"
+        )
+    return (
+        energies[index] + energies[index + 1]
+    ) / 2  # Assign the mean of two closest values to its prediction
 
 
 def get_idos(syst, energy_range, use_kpm=False):

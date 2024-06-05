@@ -274,13 +274,13 @@ if __name__ == "__main__":
 
     lambda_val = 0.28
     densities = np.arange(0.001, 0.009, 0.0005)
-    idos_energy_range = np.arange(0, 0.3, 0.0001)
+    idos_energy_range = np.arange(0, 0.2, 0.002)
     plot_local_quantity = False
     plot_single_lead = True
-    idos_kpm = True
+    idos_kpm = False
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 300
+    N1 = 50
     L = N1 * LATTICE_CONST_HGTE
     # core parameters
     geop = dict(
