@@ -5,10 +5,7 @@ import os
 from xkwant.templates import *
 from xkwant.utils import density_to_energy
 
-if len(sys.argv) == 1:
-    directory_path = "data_dirachbar.py_20240529_1041.pkl"
-else:
-    directory_path = sys.argv[1]
+directory_path = sys.argv[1]
 
 with open(directory_path, "rb") as f:
     data = pickle.load(f)
@@ -62,4 +59,4 @@ axes[1][0].set_xlabel("Density [nm$^{-2}$]")
 axes[1][0].set_ylabel("Energy [eV]")
 
 
-plt.savefig(f"plots/gappeddirac/n50/{filename}.png")
+plt.savefig(f"plots/narrowleg/kpmoff/{filename}.png")

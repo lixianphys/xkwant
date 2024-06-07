@@ -19,12 +19,15 @@ if __name__ == "__main__":
     plot_single_lead = True
     Iin = 10e-9  # A
 
-    hamp_sys = dict(ts=0, ws=lambda_val / 3e3, vs=lambda_val / 1e3, ms=0.05, Wdis=0)
-    hamp_lead = dict(tl=0, wl=lambda_val / 3e3, vl=lambda_val / 1e3, ml=0.05)
-    idos_kpm = True
+    # hamp_sys = dict(ts=0, ws=lambda_val / 3e3, vs=lambda_val / 1e3, ms=0.05, Wdis=0)
+    # hamp_lead = dict(tl=0, wl=lambda_val / 3e3, vl=lambda_val / 1e3, ml=0.05)
+
+    hamp_sys = dict(ts=tk, ws=0, vs=0, ms=0.05, Wdis=0)
+    hamp_lead = dict(tl=tk, wl=0, vl=0, ml=0.05)
+    idos_kpm = False
 
     # grid parameters
-    for N1 in np.concatenate([np.arange(30, 100, 10), np.arange(100, 1000, 100)]):
+    for N1 in np.concatenate([np.arange(30, 100, 10), np.arange(100, 500, 100)]):
         try:
             L = N1 * LATTICE_CONST_HGTE
             # core parameters
@@ -69,7 +72,7 @@ if __name__ == "__main__":
             now = datetime.now()
             timestamp = now.strftime("%Y%m%d_%H%M")
             with open(
-                f"data/narrowleg_data/dt_{os.path.basename(__file__)}_N1_{N1}_{timestamp}.pkl",
+                f"data/narrowleg_data/quad_forcomparison/dt_{os.path.basename(__file__)}_N1_{N1}_{timestamp}.pkl",
                 "wb",
             ) as f:
                 pickle.dump(data, f)

@@ -280,7 +280,7 @@ if __name__ == "__main__":
     idos_kpm = False
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 50
+    N1 = 300
     L = N1 * LATTICE_CONST_HGTE
     # core parameters
     geop = dict(
@@ -290,7 +290,7 @@ if __name__ == "__main__":
         lx_neck=int(N1 / 6),
         ly_neck=int(N1 / 6),
     )
-    for gap in np.arange(0, 0.11, 0.01):
+    for gap in [0, 0.01]:
         try:
             hamp_sys = dict(ts=0, ws=0.1, vs=lambda_val, ds=gap, ms=0.05, Wdis=0)
             hamp_lead = dict(tl=0, wl=0.1, vl=lambda_val, dl=gap, ml=0.05)
