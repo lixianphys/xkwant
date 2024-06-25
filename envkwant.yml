@@ -1,0 +1,6 @@
+name: MyKwant
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - kwant

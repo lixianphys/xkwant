@@ -1,6 +1,3 @@
-kwant
-numpy
-scipy
-matplotlib
 tqdm
 palettable
+psutil
