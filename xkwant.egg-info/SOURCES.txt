@@ -1,7 +1,9 @@
+README.md
 setup.py
 xkwant/__init__.py
 xkwant/batch.py
 xkwant/benchmark.py
+xkwant/config.py
 xkwant/device.py
 xkwant/log.py
 xkwant/physics.py
