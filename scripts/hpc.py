@@ -45,14 +45,13 @@ if __name__ == "__main__":
 
     from datetime import datetime
 
-    # rvl_l, rvl_v12, rvl_v34 = rashba_vary_lambda(lamd = np.arange(0,320,30),single_lead_current=True,target_density = 0.01,savepath='plots/rashba_vary_lambda')
     densities = np.arange(0.001, 0.009, 0.0002)
     idos_energy_range = np.arange(0, 0.2, 0.002)
     Iin = 10e-9  # A
     # grid parameters
     N1 = 50  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
-    idos_kpm = False
+    idos_kpm = True
     # core parameters
     geop = dict(
         a=L / N1,
@@ -98,7 +97,7 @@ if __name__ == "__main__":
                 now = datetime.now()
                 timestamp = now.strftime("%Y%m%d_%H%M")
                 with open(
-                    f"data/doublesurfaces_data/dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
+                    f"dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
                     "wb",
                 ) as f:
                     pickle.dump(data, f)
@@ -107,7 +106,3 @@ if __name__ == "__main__":
                     f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
                 )
                 continue
-
-    max_eng, min_eng = density_to_energy(
-        idos, idos_energy_range, max(densities)
-    ), density_to_energy(idos, idos_energy_range, min(densities))
