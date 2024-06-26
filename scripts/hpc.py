@@ -49,9 +49,9 @@ if __name__ == "__main__":
     idos_energy_range = np.arange(0, 0.2, 0.002)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 50  # the number of lattices in the longitudinal direction
+    N1 = 1000  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
-    idos_kpm = True
+    idos_kpm = False
     # core parameters
     geop = dict(
         a=L / N1,
@@ -102,6 +102,11 @@ if __name__ == "__main__":
                 ) as f:
                     pickle.dump(data, f)
             except ValueError as e:
+                print(
+                    f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
+                )
+                continue
+            except IndexError as e:
                 print(
                     f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
                 )
