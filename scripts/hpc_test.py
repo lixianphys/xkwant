@@ -277,7 +277,7 @@ if __name__ == "__main__":
     plot_single_lead = True
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 50
+    N1 = 300
     L = N1 * LATTICE_CONST_HGTE
     # core parameters
     geop = dict(
