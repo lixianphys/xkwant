@@ -4,5 +4,4 @@ plots/
 data/
 *.pkl
 *.log
-*.sh
 *.png
