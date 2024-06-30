@@ -67,12 +67,12 @@ def ei_scenario(base_dir, ei):
 
         axes[1][i].plot(data["densities"], data["voltage_V12"], color="k")
         axes[1][i].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
-        axes[1][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[1][i].set_ylabel("V34 [$\\mu$V]")
+        axes[1][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[1][i].set_ylabel(r"V34 [$\\mu$V]")
         axes[2][i].plot(data["densities"], data["voltage_V34"], color="k")
         axes[2][i].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
-        axes[2][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[2][i].set_ylabel("V12 [$\\mu$V]")
+        axes[2][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[2][i].set_ylabel(r"V12 [$\\mu$V]")
 
     fig.suptitle(
         f"$\Delta_i={ei}$, $\Delta_h=0.0,0.02,0.04,0.06,0.08,0.10$",
@@ -145,12 +145,12 @@ def eh_scenario(base_dir, eh):
 
         axes[1][i].plot(data["densities"], data["voltage_V12"], color="k")
         axes[1][i].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
-        axes[1][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[1][i].set_ylabel("V34 [$\\mu$V]")
+        axes[1][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[1][i].set_ylabel(r"V34 [$\\mu$V]")
         axes[2][i].plot(data["densities"], data["voltage_V34"], color="k")
         axes[2][i].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
-        axes[2][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[2][i].set_ylabel("V12 [$\\mu$V]")
+        axes[2][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[2][i].set_ylabel(r"V12 [$\\mu$V]")
 
     fig.suptitle(
         f"$\Delta_h={eh}$, $\Delta_i=0.0,0.02,0.04,0.06,0.08,0.10$",
@@ -162,7 +162,7 @@ def eh_scenario(base_dir, eh):
 
     fig.subplots_adjust(top=0.95)
 
-    plt.savefig(f"plots/doublesurfaces/n300/allinone_eh_{eh}.png")
+    plt.savefig(f"plots/doublesurfaces/allinone_eh_{eh}.png")
 
 
 #####################################
@@ -220,12 +220,12 @@ def gap_scenario(base_dir):
 
         axes[1][i].plot(data["densities"], data["voltage_V12"], color="k")
         axes[1][i].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
-        axes[1][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[1][i].set_ylabel("V34 [$\\mu$V]")
+        axes[1][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[1][i].set_ylabel(r"V34 [$\\mu$V]")
         axes[2][i].plot(data["densities"], data["voltage_V34"], color="k")
         axes[2][i].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
-        axes[2][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[2][i].set_ylabel("V12 [$\\mu$V]")
+        axes[2][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[2][i].set_ylabel(r"V12 [$\\mu$V]")
 
     fig.suptitle(
         f"$\Delta_g=0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.10$",
@@ -237,7 +237,7 @@ def gap_scenario(base_dir):
 
     fig.subplots_adjust(top=0.95)
 
-    plt.savefig(f"plots/gappeddirac/n300/allinone.png")
+    plt.savefig(f"plots/gappeddirac/allinone.png")
 
 
 def narrowleg_scenario(base_dir):
@@ -290,12 +290,12 @@ def narrowleg_scenario(base_dir):
 
         axes[1][i].plot(data["densities"], data["voltage_V12"], color="k")
         axes[1][i].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
-        axes[1][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[1][i].set_ylabel("V34 [$\\mu$V]")
+        axes[1][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[1][i].set_ylabel(r"V34 [$\\mu$V]")
         axes[2][i].plot(data["densities"], data["voltage_V34"], color="k")
         axes[2][i].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
-        axes[2][i].set_xlabel("Density [nm$^{-2}$]")
-        axes[2][i].set_ylabel("V12 [$\\mu$V]")
+        axes[2][i].set_xlabel(r"Density [nm$^{-2}$]")
+        axes[2][i].set_ylabel(r"V12 [$\\mu$V]")
 
     fig.suptitle(
         f"$N_1=30,40,50,60,70,80,90,100,200,300,400,500,600,700,800,900$, while keeping the leg width unchanged",
@@ -338,5 +338,102 @@ def main():
         sys.exit(1)
 
 
+def ehei_scenario(base_dir):
+
+    # Use glob to find all files with 'ei_' in their names
+    all_files = glob.glob(os.path.join(base_dir, "**"), recursive=True)[1:]
+
+    # Function to extract the value of xx from the filename
+    def extract_ei_value(filename):
+        match = re.search("ei_([\d\.]+)", filename)
+        if match:
+            return float(match.group(1))
+        return -1
+
+    def extract_eh_value(filename):
+        match = re.search("eh_([\d\.]+)", filename)
+        if match:
+            return float(match.group(1))
+        return -1
+
+    # Get the value of xx for each file and sort the list of tuples by this value
+    files_with_values = [
+        (file, extract_eh_value(file), extract_ei_value(file)) for file in all_files
+    ]
+    all_ei_values = sorted(list(set([extract_ei_value(file) for file in all_files])))
+    all_eh_values = sorted(list(set([extract_eh_value(file) for file in all_files])))
+    sorted_files = sorted(files_with_values, key=lambda x: (x[1], x[2]))
+
+    fig, axes = plt.subplots(
+        len(all_eh_values[:4]),
+        len(all_ei_values[:4]),
+        figsize=(10, 10),
+        tight_layout=True,
+    )
+
+    for i, eh in enumerate(all_eh_values[:4]):
+        for j, ei in enumerate(all_ei_values[:4]):
+            directory_path = sorted_files[i * len(all_eh_values) + j][0]
+            with open(directory_path, "rb") as f:
+                data = pickle.load(f)
+            geop = data["geometric_params"]
+            hamp_sys = data["hamiltonian_params_sys"]
+            hamp_lead = data["hamiltonian_params_lead"]
+            idos = data["idos"]
+            idos_energy_range = data["idos_energy_range"]
+            densities = data["densities"]
+            try:
+                syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            except KeyError:
+                try:
+                    syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+                except KeyError:
+                    syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
+
+            max_eng, min_eng = density_to_energy(
+                idos, idos_energy_range, max(densities)
+            ), density_to_energy(idos, idos_energy_range, min(densities))
+
+            # kwant.plotter.bands(
+            #     syst.finalized().leads[0],
+            #     ax=axes[i][j],
+            #     momenta=np.arange(-0.5, 0.5, 0.01),
+            # )
+            # axes[i][j].axhline(y=max_eng, linestyle="--")
+            # axes[i][j].axhline(y=min_eng, linestyle="--")
+            # axes[i][j].set_ylim(-0.3, 0.3)
+            # axes[i][j].set_xlabel(r"k (nm$^{-1}$)")
+            # axes[i][j].set_ylabel(r"E (eV)")
+
+            axes[i][j].plot(data["densities"] * 1e3, data["voltage_V12"], color="k")
+            axes[i][j].scatter(
+                data["densities"] * 1e3, data["voltage_V12"], s=15, color="r"
+            )
+            axes[i][j].set_xlabel(r"Density [10$^{11}$cm$^{-2}$]")
+            axes[i][j].set_ylabel(r"V34 [$\mu$V]")
+            axes[i][j].set_xticks([0, 2, 4, 6, 8])
+
+            # axes[i][j].plot(data["densities"] * 1e3, data["voltage_V34"], color="k")
+            # axes[i][j].scatter(
+            #     data["densities"] * 1e3, data["voltage_V34"], s=15, color="r"
+            # )
+            # axes[i][j].set_xlabel(r"Density [10$^{11}$cm$^{-2}$]")
+            # axes[i][j].set_ylabel(r"V12 [$\mu$V]")
+            # axes[i][j].set_xticks([0, 2, 4, 6, 8])
+
+    fig.suptitle(
+        f"$\Delta_h=0,0.02,0.04,0.06$ (vertical), $\Delta_i=0,0.02,0.04,0.06$ (horizontal)",
+        x=0.5,
+        y=0.98,
+        ha="center",
+        fontsize=20,
+    )
+
+    # fig.subplots_adjust(top=0.95)
+
+    plt.savefig(f"plots/allinone_v12.pdf")
+
+
 if __name__ == "__main__":
     main()
+    # ehei_scenario(f"data/doublesurfaces_data/n300")

@@ -118,11 +118,11 @@ def prepare_plot(xlabel: str, xlim: tuple, ylabel=None, ylabel2=None, figsize=(1
     [ax.set_xlabel(xlabel) for ax in axs[:, 0]]
     [ax.set_xlim(*xlim) for ax in axs[:, 0]]
     if ylabel is None:
-        axs[0, 0].set_ylabel("$\Delta V_{34}(\lambda)$ [$\mu$V]")
+        axs[0, 0].set_ylabel(r"$\Delta V_{34}(\lambda)$ [$\mu$V]")
     else:
         axs[0, 0].set_ylabel(ylabel)
     if ylabel2 is None:
-        axs[1, 0].set_ylabel("$G_{SH}$ [e/8$\pi$]")
+        axs[1, 0].set_ylabel(r"$G_{SH}$ [e/8$\pi$]")
     else:
         axs[1, 0].set_ylabel(ylabel2)
     return fig, axs
