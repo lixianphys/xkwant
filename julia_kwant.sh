@@ -2,6 +2,7 @@
 
 #SBATCH -J xkwant
 #SBATCH -c 16
+#SBATCH -t 2-00:00:00
 #SBATCH --output=kwant_output
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=lixian.philips.wang@gmail.com
