@@ -63,14 +63,16 @@ if __name__ == "__main__":
         ly_neck=int(N1 / 6),
     )
 
-    for einv in np.arange(0, 0.12, 0.02):
-        for ehyb in np.arange(0, 0.12, 0.02):
+    for einv in [0.01, 0.02, 0.03]:
+        print(rf"einv={einv}")
+        for ehyb in np.arange(0, 0.07, 0.02):
+            print(rf"   ehyb={ehyb}")
             try:
                 hamp_sys = dict(
                     ws=0.1, vs=0.28, invs=einv, hybs=ehyb
                 )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
                 hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb)
-                syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+                syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
                 vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
                     syst,
@@ -99,7 +101,7 @@ if __name__ == "__main__":
                 now = datetime.now()
                 timestamp = now.strftime("%Y%m%d_%H%M")
                 with open(
-                    f"data/doublesurfaces_data/dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
+                    f"data/doublesurfaces_data/test/dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
                     "wb",
                 ) as f:
                     pickle.dump(data, f)
