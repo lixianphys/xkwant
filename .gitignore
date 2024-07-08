@@ -5,3 +5,5 @@ data/
 *.pkl
 *.log
 *.png
+# Exclude all .ipynb_checkpoints directories recursively
+**/.ipynb_checkpoints/
