@@ -45,11 +45,11 @@ if __name__ == "__main__":
 
     from datetime import datetime
 
-    densities = np.arange(0.001, 0.009, 0.0002)
-    idos_energy_range = np.arange(0, 0.2, 0.002)
+    densities = np.arange(0.001, 0.009, 0.0001)
+    idos_energy_range = np.arange(0, 0.1, 0.001)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 50  # the number of lattices in the longitudinal direction
+    N1 = 1000  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
@@ -62,13 +62,13 @@ if __name__ == "__main__":
     )
 
     einv = 0
-    for ehyb in np.arange(0, 0.04, 0.01):
+    for ehyb in np.arange(0, 0.01, 0.001):
         try:
             hamp_sys = dict(
                 ws=0.1, vs=0.28, invs=einv, hybs=ehyb
             )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
             hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb)
-            syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            syst = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
             vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
                 syst,
