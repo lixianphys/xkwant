@@ -7,3 +7,4 @@ data/
 *.png
 # Exclude all .ipynb_checkpoints directories recursively
 **/.ipynb_checkpoints/
+*.ipynb

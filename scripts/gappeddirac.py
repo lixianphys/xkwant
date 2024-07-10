@@ -8,7 +8,6 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-from xkwant.config import DEFAULT_CMAP, LATTICE_CONST_HGTE
 
 
 @log_function_call

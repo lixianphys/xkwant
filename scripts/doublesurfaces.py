@@ -48,10 +48,10 @@ if __name__ == "__main__":
 
     # rvl_l, rvl_v12, rvl_v34 = rashba_vary_lambda(lamd = np.arange(0,320,30),single_lead_current=True,target_density = 0.01,savepath='plots/rashba_vary_lambda')
     densities = np.arange(0.001, 0.009, 0.0002)
-    idos_energy_range = np.arange(0, 0.2, 0.002)
+    idos_energy_range = np.arange(0, 0.2, 0.001)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 300  # the number of lattices in the longitudinal direction
+    N1 = 100  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
@@ -63,24 +63,34 @@ if __name__ == "__main__":
         ly_neck=int(N1 / 6),
     )
 
-    for einv in [0.01, 0.02, 0.03]:
+    for einv in [0]:
         print(rf"einv={einv}")
-        for ehyb in np.arange(0, 0.07, 0.02):
+        for ehyb in [0, 0.02, 0.04, 0.06]:
             print(rf"   ehyb={ehyb}")
-            try:
-                hamp_sys = dict(
-                    ws=0.1, vs=0.28, invs=einv, hybs=ehyb
-                )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
-                hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb)
-                syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            # try:
+            hamp_sys = dict(
+                ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
+            )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
+            hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
+            # syst = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            syst_rashba = doublerashba_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            syst_quad = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            syst_dirac = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
+            for syst, path_to_save in zip(
+                [syst_rashba, syst_quad, syst_dirac],
+                [
+                    f"data/doublesurfaces_data/rashba",
+                    f"data/doublesurfaces_data/quad",
+                    f"data/doublesurfaces_data/dirac",
+                ],
+            ):
                 vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
                     syst,
                     densities=densities,
                     idos_energy_range=idos_energy_range,
                     Iin=Iin,
                     idos_kpm=idos_kpm,
-                    # savepath="plots/rashba_vary_density",
                 )
 
                 data = {
@@ -101,35 +111,15 @@ if __name__ == "__main__":
                 now = datetime.now()
                 timestamp = now.strftime("%Y%m%d_%H%M")
                 with open(
-                    f"data/doublesurfaces_data/test/dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
+                    os.path.join(
+                        path_to_save,
+                        f"dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
+                    ),
                     "wb",
                 ) as f:
                     pickle.dump(data, f)
-            except ValueError as e:
-                print(
-                    f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
-                )
-                continue
-
-    max_eng, min_eng = density_to_energy(
-        idos, idos_energy_range, max(densities)
-    ), density_to_energy(idos, idos_energy_range, min(densities))
-
-    # fig, axes = plt.subplots(2, 2, figsize=(12, 12), tight_layout=True)
-    # kwant.plotter.bands(syst.finalized().leads[0], ax=axes[0][0])
-    # axes[0][0].axhline(y=max_eng, linestyle="--")
-    # axes[0][0].axhline(y=min_eng, linestyle="--")
-
-    # axes[0][1].plot(data["densities"], data["voltage_V12"], color="k")
-    # axes[0][1].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
-    # axes[0][1].set_xlabel("Density [nm$^{-2}$]")
-    # axes[0][1].set_ylabel("V34 [$\\mu$V]")
-    # axes[1][1].plot(data["densities"], data["voltage_V34"], color="k")
-    # axes[1][1].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
-    # axes[1][1].set_xlabel("Density [nm$^{-2}$]")
-    # axes[1][1].set_ylabel("V12 [$\\mu$V]")
-    # axes[1][0].plot(data["idos"], data["idos_energy_range"], color="k")
-    # axes[1][0].scatter(data["idos"], data["idos_energy_range"], s=15, color="r")
-    # axes[1][0].set_xlabel("Density [nm$^{-2}$]")
-    # axes[1][0].set_ylabel("Energy [eV]")
-    # plt.show()
+            # except ValueError as e:
+            #     print(
+            #         f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
+            #     )
+            #     continue
