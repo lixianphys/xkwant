@@ -46,7 +46,6 @@ if __name__ == "__main__":
     from datetime import datetime
 
     densities = np.arange(0.001, 0.009, 0.0001)
-    idos_energy_range = np.arange(0, 0.1, 0.001)
     Iin = 10e-9  # A
     # grid parameters
     N1 = 1000  # the number of lattices in the longitudinal direction
@@ -63,12 +62,14 @@ if __name__ == "__main__":
 
     einv = 0
     for ehyb in np.arange(0, 0.1, 0.01):
+        idos_energy_range = np.arange(-ehyb, 0.3, 0.001)
+        print(f"ehyb={ehyb}")
         try:
             hamp_sys = dict(
-                ws=0.1, vs=0.28, invs=einv, hybs=ehyb
+                ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
             )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
-            hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb)
-            syst = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
+            syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
             vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
                 syst,
