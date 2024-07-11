@@ -46,14 +46,7 @@ def ei_scenario(base_dir, ei):
         idos_energy_range = data["idos_energy_range"]
         densities = data["densities"]
 
-        try:
-            syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-        except KeyError:
-            try:
-                syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            except KeyError:
-                syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
-
+        syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
         max_eng, min_eng = density_to_energy(
             idos, idos_energy_range, max(densities)
         ), density_to_energy(idos, idos_energy_range, min(densities))
@@ -63,7 +56,7 @@ def ei_scenario(base_dir, ei):
         )
         axes[0][i].axhline(y=max_eng, linestyle="--")
         axes[0][i].axhline(y=min_eng, linestyle="--")
-        axes[0][i].set_ylim(-0.1, 0.1)
+        axes[0][i].set_ylim(-0.01, 0.3)
         axes[0][i].set_xlabel(r"k (nm$^{-1}$)")
         axes[0][i].set_ylabel(r"E (eV)")
 
@@ -428,9 +421,12 @@ def ehei_scenario(template, base_dir, type):
         fontsize=20,
     )
 
-    plt.savefig(f"plots/doublesurfaces/dirac/allinone_v34.pdf")
+    plt.savefig(f"plots/doublesurfaces/dirac/n100/allinone_v12.pdf")
 
 
 if __name__ == "__main__":
-    # main()
-    ehei_scenario(new_doubledirac_mkhbar_4t, f"data/doublesurfaces_data/dirac", "v34")
+    main()
+    # ei_scenario(doublerashba_mkhbar_4t, "data/doublesurfaces_data/rashba/n100", 0)
+    # ehei_scenario(
+    #     new_doubledirac_mkhbar_4t, f"data/doublesurfaces_data/dirac/n100", "v12"
+    # )

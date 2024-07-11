@@ -36,14 +36,19 @@ except KeyError:
     except KeyError:
         syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
 
+density_to_label = [0.0013, 0.0024, 0.0037, 0.0052, 0.0071]
+
 
 max_eng, min_eng = density_to_energy(
     idos, idos_energy_range, max(densities)
 ), density_to_energy(idos, idos_energy_range, min(densities))
 
-kwant.plotter.bands(syst.finalized().leads[0], ax=axes[0][0])
+kwant.plotter.bands(
+    syst.finalized().leads[0], ax=axes[0][0], momenta=np.arange(-0.5, 0.5, 0.01)
+)
 axes[0][0].axhline(y=max_eng, linestyle="--")
 axes[0][0].axhline(y=min_eng, linestyle="--")
+axes[0][0].set_ylim(-0.1, 0.1)
 
 axes[0][1].plot(data["densities"], data["voltage_V12"], color="k")
 axes[0][1].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
@@ -58,5 +63,13 @@ axes[1][0].scatter(data["idos"], data["idos_energy_range"], s=15, color="r")
 axes[1][0].set_xlabel("Density [nm$^{-2}$]")
 axes[1][0].set_ylabel("Energy [eV]")
 
+[axes[0][1].axvline(x=v, color="g") for v in density_to_label]
+[axes[1][1].axvline(x=v, color="g") for v in density_to_label]
 
-plt.savefig(f"plots/narrowleg/kpmoff/{filename}.png")
+[
+    axes[0][0].axhline(y=density_to_energy(idos, idos_energy_range, v), color="g")
+    for v in density_to_label
+]
+
+
+plt.savefig(f"plots/{filename}.pdf")

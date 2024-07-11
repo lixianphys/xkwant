@@ -62,7 +62,7 @@ if __name__ == "__main__":
     )
 
     einv = 0
-    for ehyb in np.arange(0, 0.01, 0.001):
+    for ehyb in np.arange(0, 0.1, 0.01):
         try:
             hamp_sys = dict(
                 ws=0.1, vs=0.28, invs=einv, hybs=ehyb
