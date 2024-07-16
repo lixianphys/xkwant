@@ -69,7 +69,7 @@ if __name__ == "__main__":
                 ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
             )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
             hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
-            syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
             vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
                 syst,
