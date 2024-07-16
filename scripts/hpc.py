@@ -48,7 +48,7 @@ if __name__ == "__main__":
     densities = np.arange(0.001, 0.009, 0.0001)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 1000  # the number of lattices in the longitudinal direction
+    N1 = 3000  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
@@ -61,8 +61,8 @@ if __name__ == "__main__":
     )
 
     einv = 0
-    for ehyb in np.arange(0, 0.1, 0.01):
-        idos_energy_range = np.arange(-ehyb, 0.3, 0.001)
+    for ehyb in [0, 0.05, 0.1]:
+        idos_energy_range = np.arange(-ehyb, 0.2, 0.001)
         print(f"ehyb={ehyb}")
         try:
             hamp_sys = dict(
