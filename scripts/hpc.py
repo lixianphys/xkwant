@@ -48,7 +48,7 @@ if __name__ == "__main__":
     densities = np.arange(0.001, 0.009, 0.0001)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 36  # the number of lattices in the longitudinal direction
+    N1 = 1000  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
