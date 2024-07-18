@@ -433,16 +433,12 @@ def gappeddirac_mkhbar_4t(
     syst = Hbar(geop)
     syst.set_ham_params(hamp_sys)
     # Hamiltonian parameters belong to both scattering region and leads
-    ts, tl = hamp_sys["ts"], hamp_lead["tl"]
     ws, wl = hamp_sys["ws"], hamp_lead["wl"]
     vs, vl = hamp_sys["vs"], hamp_lead["vl"]
-    ms, ml = hamp_sys["ms"], hamp_lead["ml"]
     ds, dl = (
         hamp_sys["ds"],
         hamp_lead["dl"],
     )  # this term is the gap of the dirac dispersion at k=0.
-    # hamiltonian parameters only belong to the scattering region: disorder strength Wdis
-    Wdis = hamp_sys["Wdis"]
     # Geometric parameters for the scattering region
     lx_leg = geop["lx_leg"]
     ly_leg = geop["ly_leg"]
@@ -454,22 +450,22 @@ def gappeddirac_mkhbar_4t(
 
     def onsite(site):
         rand_num = random.uniform(-1, 1)
-        return (4 * ts / (ms * a**2) + Wdis * rand_num) * s_0 + 4 * ws * s_z + ds * s_z
+        return 4 * ws * s_z + ds * s_z
 
     def lead_onsite(site):
-        return (4 * tl / (ms * a**2)) * s_0 + 4 * wl * s_z + dl * s_z
+        return 4 * wl * s_z + dl * s_z
 
     def hop_x(site1, site2):
-        return -ts / (ms * a**2) * s_0 + 1j * vs / (2 * a) * s_y - ws * s_z
+        return 1j * vs / (2 * a) * s_y - ws * s_z
 
     def hop_y(site1, site2):
-        return -ts / (ms * a**2) * s_0 - 1j * vs / (2 * a) * s_x - ws * s_z
+        return -1j * vs / (2 * a) * s_x - ws * s_z
 
     def lead_hop_x(site1, site2):
-        return -tl / (ml * a**2) * s_0 + 1j * vl / (2 * a) * s_y - wl * s_z
+        return 1j * vl / (2 * a) * s_y - wl * s_z
 
     def lead_hop_y(site1, site2):
-        return -tl / (ml * a**2) * s_0 - 1j * vl / (2 * a) * s_x - wl * s_z
+        return -1j * vl / (2 * a) * s_x - wl * s_z
 
     # Define Fundamental Domain
     for i in range(lx_leg):

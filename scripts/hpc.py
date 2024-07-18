@@ -48,7 +48,7 @@ if __name__ == "__main__":
     densities = np.arange(0.001, 0.009, 0.0001)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 3000  # the number of lattices in the longitudinal direction
+    N1 = 36  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
@@ -60,16 +60,15 @@ if __name__ == "__main__":
         ly_neck=int(N1 / 6),
     )
 
-    einv = 0
-    for ehyb in [0, 0.05, 0.1]:
-        idos_energy_range = np.arange(-ehyb, 0.2, 0.001)
-        print(f"ehyb={ehyb}")
+    for gap in np.arange(0, 0.1, 0.02):
+        idos_energy_range = np.arange(0, 0.2, 0.001)
+        print(f"gap={gap}")
         try:
-            hamp_sys = dict(
-                ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
-            )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
-            hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
-            syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            hamp_sys = dict(ws=0.1, vs=0.28, ds=gap)
+            hamp_lead = dict(wl=0.1, vl=0.28, dl=gap)
+            syst = gappeddirac_mkhbar_4t(
+                geop, hamp_sys, hamp_lead
+            )  # This system won't be changed anymore
 
             vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
                 syst,
@@ -98,17 +97,13 @@ if __name__ == "__main__":
             now = datetime.now()
             timestamp = now.strftime("%Y%m%d_%H%M")
             with open(
-                f"dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
+                f"dt_{os.path.basename(__file__)}_gap_{gap}_{timestamp}.pkl",
                 "wb",
             ) as f:
                 pickle.dump(data, f)
         except ValueError as e:
-            print(
-                f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
-            )
+            print(f"Calculations for gap_{gap} failed, but continue..")
             continue
         except IndexError as e:
-            print(
-                f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
-            )
+            print(f"Calculations for gap_{gap} failed, but continue..")
             continue
