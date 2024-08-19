@@ -714,125 +714,134 @@ def mkhbar_6t(geop, hamp_sys, hamp_lead, finalized=False):
     else:
         return syst
 
-    # TODO:
-    # Implement B field
-    # def mkhbar_b4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None):
-    #     from device import Hbar  # place this inside function to avoid circular import
 
-    #     """ Return a hbar-shaped FiniteSystem or Builder() with four terminals"""
-    #     syst = Hbar(geop)
-    #     syst.set_ham_params(hamp_sys)
-    #     # Hamiltonian parameters belong to both scattering region and leads
-    #     ts, tl = hamp_sys["ts"], hamp_lead["tl"]
-    #     ws, wl = hamp_sys["ws"], hamp_lead["wl"]
-    #     vs, vl = hamp_sys["vs"], hamp_lead["vl"]
-    #     ms, ml = hamp_sys["ms"], hamp_lead["ml"]
-    #     # hamiltonian parameters only belong to the scattering region: lattice constant a, disorder strength Wdis
-    #     Wdis = hamp_sys["Wdis"]
-    #     # Geometric parameters for the scattering region
-    #     a = geop["a"]
-    #     lx_leg = geop["lx_leg"]
-    #     ly_leg = geop["ly_leg"]
-    #     lx_neck = geop["lx_neck"]
-    #     ly_neck = geop["ly_neck"]
+# Integrate B field into the Hamiltonian
+def mkhbar_4t_magf(
+    geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None
+):
+    from .device import Hbar  # place this inside function to avoid circular import
 
-    #     lat = kwant.lattice.square(a, norbs=2)
+    """Return a hbar-shaped FiniteSystem or Builder() with four terminals"""
+    syst = Hbar(geop)
+    syst.set_ham_params(hamp_sys)
+    # Hamiltonian parameters belong to both scattering region and leads
+    ts, tl = hamp_sys["ts"], hamp_lead["tl"]
+    ws, wl = hamp_sys["ws"], hamp_lead["wl"]
+    vs, vl = hamp_sys["vs"], hamp_lead["vl"]
+    ms, ml = hamp_sys["ms"], hamp_lead["ml"]
+    # hamiltonian parameters only belong to the scattering region: lattice constant a, disorder strength Wdis
+    Wdis = hamp_sys["Wdis"]
+    # Geometric parameters for the scattering region
+    a = geop["a"]
+    lx_leg = geop["lx_leg"]
+    ly_leg = geop["ly_leg"]
+    lx_neck = geop["lx_neck"]
+    ly_neck = geop["ly_neck"]
 
-    #     def onsite(site):  #  mu is the chem pot of the system
-    #         rand_num = random.uniform(-1, 1)
-    #         return (4 * ts / (ms * a**2) + Wdis * rand_num) * s_0 + 4 * ws * s_z
+    lat = kwant.lattice.square(a, norbs=2)
 
-    #     def lead_onsite(site):
-    #         return (4 * tl / (ms * a**2)) * s_0 + 4 * wl * s_z
+    def onsite(site):  #  mu is the chem pot of the system
+        rand_num = random.uniform(-1, 1)
+        return (4 * ts / (ms * a**2) + Wdis * rand_num) * s_0 + 4 * ws * s_z
 
-    #     def hop_x(site1, site2, B):
-    #         x1, y1 = site1.pos
-    #         x2, y2 = site2.pos
-    #         phase = np.exp(-1j * B * (y1 + y2) / 2)
-    #         return -phase * ts / (ms * a**2) * s_0 + 1j * vs / (2 * a) * s_y - ws * s_z
+    def lead_onsite(site):
+        return (4 * tl / (ms * a**2)) * s_0 + 4 * wl * s_z
 
-    #     def hop_y(site1, site2, B):
-    #         x1, y1 = site1.pos
-    #         x2, y2 = site2.pos
-    #         return -ts / (ms * a**2) * s_0 - 1j * vs / (2 * a) * s_x - ws * s_z
+    def hop_x(site1, site2, B):
+        x1, y1 = site1.pos
+        x2, y2 = site2.pos
+        phase = np.exp(-1j * B * (y1 + y2) / 2)
+        return phase * (-ts / (ms * a**2) * s_0 + 1j * vs / (2 * a) * s_y) - ws * s_z
 
-    #     def lead_hop_x(site1, site2):
-    #         return -tl / (ml * a**2) * s_0 + 1j * vl / (2 * a) * s_y - wl * s_z
+    def hop_y(site1, site2, B):
+        x1, y1 = site1.pos
+        x2, y2 = site2.pos
+        phase = np.exp(-1j * B * (x1 + x2) / 2)
+        return phase * (-ts / (ms * a**2) * s_0 - 1j * vs / (2 * a) * s_x) - ws * s_z
 
-    #     def lead_hop_y(site1, site2):
-    #         return -tl / (ml * a**2) * s_0 - 1j * vl / (2 * a) * s_x - wl * s_z
+    def lead_hop_x(site1, site2, B):
+        x1, y1 = site1.pos
+        x2, y2 = site2.pos
+        phase = np.exp(-1j * B * (y1 + y2) / 2)
+        return phase * (-tl / (ml * a**2) * s_0 + 1j * vl / (2 * a) * s_y) - wl * s_z
 
-    #     # Define Fundamental Domain
-    #     for i in range(lx_leg):
-    #         # bottom horizontal leg:  lx_leg in x direction, ly_leg in y direction, (0,0) site at its left-bottom corner
-    #         for j in range(ly_leg):
-    #             # On-site Hamiltonian
-    #             syst[lat(i, j)] = onsite
-    #             if j > 0:
-    #                 # Hopping in y-direction
-    #                 syst[lat(i, j), lat(i, j - 1)] = hop_y
-    #             if i > 0:
-    #                 # Hopping in x-direction
-    #                 syst[lat(i, j), lat(i - 1, j)] = hop_x
+    def lead_hop_y(site1, site2, B):
+        x1, y1 = site1.pos
+        x2, y2 = site2.pos
+        phase = np.exp(-1j * B * (x1 + x2) / 2)
+        return phase * (-tl / (ml * a**2) * s_0 - 1j * vl / (2 * a) * s_x) - wl * s_z
 
-    #     for i in range(lx_leg):
-    #         # top horizontal leg:  xlen_leg in x direction, ly_leg in y direction
-    #         for j in range(ly_leg + ly_neck, ly_leg * 2 + ly_neck):
-    #             syst[lat(i, j)] = onsite
-    #             if j > ly_leg + ly_neck:
-    #                 syst[lat(i, j), lat(i, j - 1)] = hop_y
-    #             if i > 0:
-    #                 syst[lat(i, j), lat(i - 1, j)] = hop_x
+    # Define Fundamental Domain
+    for i in range(lx_leg):
+        # bottom horizontal leg:  lx_leg in x direction, ly_leg in y direction, (0,0) site at its left-bottom corner
+        for j in range(ly_leg):
+            # On-site Hamiltonian
+            syst[lat(i, j)] = onsite
+            if j > 0:
+                # Hopping in y-direction
+                syst[lat(i, j), lat(i, j - 1)] = hop_y
+            if i > 0:
+                # Hopping in x-direction
+                syst[lat(i, j), lat(i - 1, j)] = hop_x
 
-    #     for i in range(lx_leg // 2 - lx_neck // 2, lx_leg // 2 + lx_neck // 2):
-    #         # central connecting neck
-    #         for j in range(ly_leg, ly_leg + ly_neck):
-    #             syst[lat(i, j)] = onsite
-    #             if j >= ly_leg:
-    #                 syst[lat(i, j), lat(i, j - 1)] = hop_y
-    #             if i > lx_leg // 2 - lx_neck // 2:
-    #                 syst[lat(i, j), lat(i - 1, j)] = hop_x
-    #         syst[lat(i, ly_leg + ly_neck), lat(i, ly_leg + ly_neck - 1)] = hop_y
+    for i in range(lx_leg):
+        # top horizontal leg:  xlen_leg in x direction, ly_leg in y direction
+        for j in range(ly_leg + ly_neck, ly_leg * 2 + ly_neck):
+            syst[lat(i, j)] = onsite
+            if j > ly_leg + ly_neck:
+                syst[lat(i, j), lat(i, j - 1)] = hop_y
+            if i > 0:
+                syst[lat(i, j), lat(i - 1, j)] = hop_x
 
-    #     # Define Leads
-    #     sym_left_lead = kwant.TranslationalSymmetry((-a, 0))
-    #     sym_right_lead = kwant.TranslationalSymmetry((a, 0))
+    for i in range(lx_leg // 2 - lx_neck // 2, lx_leg // 2 + lx_neck // 2):
+        # central connecting neck
+        for j in range(ly_leg, ly_leg + ly_neck):
+            syst[lat(i, j)] = onsite
+            if j >= ly_leg:
+                syst[lat(i, j), lat(i, j - 1)] = hop_y
+            if i > lx_leg // 2 - lx_neck // 2:
+                syst[lat(i, j), lat(i - 1, j)] = hop_x
+        syst[lat(i, ly_leg + ly_neck), lat(i, ly_leg + ly_neck - 1)] = hop_y
 
-    # # lead No. 0   # bottom left
-    # bot_left_lead = kwant.Builder(sym_left_lead, conservation_law = conservation_law)
-    # for j in range(ly_leg):
-    #     bot_left_lead[lat(0, j)] = lead_onsite
-    #     if j>0:
-    #         bot_left_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
-    #     bot_left_lead[lat(1, j), lat(0, j)] = lead_hop_x
-    # syst.attach_lead(bot_left_lead)
+    # Define Leads
+    sym_left_lead = kwant.TranslationalSymmetry((-a, 0))
+    sym_right_lead = kwant.TranslationalSymmetry((a, 0))
 
-    # # lead No. 1   # bottom right
-    # bot_right_lead = kwant.Builder(sym_right_lead, conservation_law = conservation_law)
-    # for j in range(ly_leg):
-    #     bot_right_lead[lat(0, j)] = lead_onsite
-    #     if j>0:
-    #         bot_right_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
-    #     bot_right_lead[lat(1, j), lat(0, j)] = lead_hop_x
-    # syst.attach_lead(bot_right_lead)
+    # lead No. 0   # bottom left
+    bot_left_lead = kwant.Builder(sym_left_lead, conservation_law=conservation_law)
+    for j in range(ly_leg):
+        bot_left_lead[lat(0, j)] = lead_onsite
+        if j > 0:
+            bot_left_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
+        bot_left_lead[lat(1, j), lat(0, j)] = lead_hop_x
+    syst.attach_lead(bot_left_lead)
 
-    # # lead No. 2   # top left
-    # top_left_lead = kwant.Builder(sym_left_lead, conservation_law = conservation_law)
-    # for j in range(ly_leg+ly_neck, ly_leg*2+ly_neck):
-    #     top_left_lead[lat(0, j)] = lead_onsite
-    #     if j>ly_leg+ly_neck:
-    #         top_left_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
-    #     top_left_lead[lat(1, j), lat(0, j)] = lead_hop_x
-    # syst.attach_lead(top_left_lead)
+    # lead No. 1   # bottom right
+    bot_right_lead = kwant.Builder(sym_right_lead, conservation_law=conservation_law)
+    for j in range(ly_leg):
+        bot_right_lead[lat(0, j)] = lead_onsite
+        if j > 0:
+            bot_right_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
+        bot_right_lead[lat(1, j), lat(0, j)] = lead_hop_x
+    syst.attach_lead(bot_right_lead)
 
-    # # lead No. 3   # top right
-    # top_right_lead = kwant.Builder(sym_right_lead, conservation_law = conservation_law)
-    # for j in range(ly_leg+ly_neck, ly_leg*2+ly_neck):
-    #     top_right_lead[lat(0, j)] = lead_onsite
-    #     if j>ly_leg+ly_neck:
-    #         top_right_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
-    #     top_right_lead[lat(1, j), lat(0, j)] = lead_hop_x
-    # syst.attach_lead(top_right_lead)
+    # lead No. 2   # top left
+    top_left_lead = kwant.Builder(sym_left_lead, conservation_law=conservation_law)
+    for j in range(ly_leg + ly_neck, ly_leg * 2 + ly_neck):
+        top_left_lead[lat(0, j)] = lead_onsite
+        if j > ly_leg + ly_neck:
+            top_left_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
+        top_left_lead[lat(1, j), lat(0, j)] = lead_hop_x
+    syst.attach_lead(top_left_lead)
+
+    # lead No. 3   # top right
+    top_right_lead = kwant.Builder(sym_right_lead, conservation_law=conservation_law)
+    for j in range(ly_leg + ly_neck, ly_leg * 2 + ly_neck):
+        top_right_lead[lat(0, j)] = lead_onsite
+        if j > ly_leg + ly_neck:
+            top_right_lead[lat(0, j), lat(0, j - 1)] = lead_hop_y
+        top_right_lead[lat(1, j), lat(0, j)] = lead_hop_x
+    syst.attach_lead(top_right_lead)
 
     if finalized:
         return syst.finalized()
