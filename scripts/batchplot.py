@@ -8,17 +8,13 @@ from xkwant.templates import *
 from xkwant.utils import density_to_energy
 
 
-def ei_scenario(base_dir, ei):
+def ei_scenario(template, base_dir, ei):
 
     # Use glob to find all files with 'ei_' in their names
     all_files = glob.glob(os.path.join(base_dir, "**", "*ei_*"), recursive=True)
 
     # Filter the files to include only those with the exact 'ei_{ei}' pattern
-    matching_files = [
-        file
-        for file in all_files
-        if re.search(rf"ei_{re.escape(ei)}(_|\.)", os.path.basename(file))
-    ]
+    matching_files = all_files
 
     # Function to extract the value of xx from the filename
     def extract_eh_value(filename):
@@ -31,9 +27,10 @@ def ei_scenario(base_dir, ei):
     files_with_eh_value = [(file, extract_eh_value(file)) for file in matching_files]
     sorted_files = sorted(files_with_eh_value, key=lambda x: x[1])
 
-    fig, axes = plt.subplots(3, len(sorted_files), figsize=(20, 12))
+    fig, axes = plt.subplots(3, len(sorted_files), figsize=(24, 12), tight_layout=True)
 
     for i, (directory_path, eh_value) in enumerate(sorted_files):
+        print(directory_path)
         with open(directory_path, "rb") as f:
             data = pickle.load(f)
 
@@ -46,19 +43,22 @@ def ei_scenario(base_dir, ei):
         idos_energy_range = data["idos_energy_range"]
         densities = data["densities"]
 
-        syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
+        syst = template(geop, hamp_sys, hamp_lead)
         max_eng, min_eng = density_to_energy(
             idos, idos_energy_range, max(densities)
         ), density_to_energy(idos, idos_energy_range, min(densities))
 
         kwant.plotter.bands(
-            syst.finalized().leads[0], ax=axes[0][i], momenta=np.arange(-0.5, 0.5, 0.01)
+            syst.finalized().leads[0],
+            ax=axes[0][i],
+            momenta=np.arange(-0.4, 0.4, 0.004),
         )
         axes[0][i].axhline(y=max_eng, linestyle="--")
         axes[0][i].axhline(y=min_eng, linestyle="--")
-        axes[0][i].set_ylim(-0.01, 0.3)
+        axes[0][i].set_ylim(-0.1, 0.1)
         axes[0][i].set_xlabel(r"k (nm$^{-1}$)")
         axes[0][i].set_ylabel(r"E (eV)")
+        axes[0][i].text(x=-0.3, y=0.12, s=f"$\Delta_h$={eh_value} eV", fontsize=18)
 
         axes[1][i].plot(data["densities"], data["voltage_V12"], color="k")
         axes[1][i].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
@@ -69,13 +69,13 @@ def ei_scenario(base_dir, ei):
         axes[2][i].set_xlabel(r"Density [nm$^{-2}$]")
         axes[2][i].set_ylabel(r"V12 [$\mu$V]")
 
-    fig.suptitle(
-        f"$\Delta_i={ei}$, $\Delta_h=0.0,0.01,0.02,0.03$",
-        x=0.5,
-        y=0.98,
-        ha="center",
-        fontsize=20,
-    )
+    # fig.suptitle(
+    #     f"$\Delta_h=0.0,0.01,0.02,0.03$",
+    #     x=0.5,
+    #     y=0.98,
+    #     ha="center",
+    #     fontsize=20,
+    # )
 
     fig.subplots_adjust(top=0.95)
 
@@ -163,7 +163,7 @@ def eh_scenario(base_dir, eh):
 #####################################
 
 
-def gap_scenario(base_dir):
+def gap_scenario(template, base_dir):
     # Use glob to find all files with 'ei_' in their names
     all_files = glob.glob(os.path.join(base_dir, "**"), recursive=False)
     # Filter the files to include only those with the exact 'ei_{ei}' pattern
@@ -193,15 +193,7 @@ def gap_scenario(base_dir):
         idos = data["idos"]
         idos_energy_range = data["idos_energy_range"]
         densities = data["densities"]
-
-        try:
-            syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-        except KeyError:
-            try:
-                syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            except KeyError:
-                syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
-
+        syst = template(geop, hamp_sys, hamp_lead)
         max_eng, min_eng = density_to_energy(
             idos, idos_energy_range, max(densities)
         ), density_to_energy(idos, idos_energy_range, min(densities))
@@ -211,7 +203,10 @@ def gap_scenario(base_dir):
         )
         axes[0][i].axhline(y=max_eng, linestyle="--")
         axes[0][i].axhline(y=min_eng, linestyle="--")
-        axes[0][i].set_ylim(-0.3, 0.3)
+        axes[0][i].set_xlabel(r"k (nm$^{-1}$)")
+        axes[0][i].set_ylabel(r"E (eV)")
+        axes[0][i].set_ylim(-0.2, 0.2)
+        axes[0][i].text(x=-0.3, y=0.22, s=f"$\Delta_g$={gap_value} eV", fontsize=18)
 
         axes[1][i].plot(data["densities"], data["voltage_V12"], color="k")
         axes[1][i].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
@@ -222,17 +217,9 @@ def gap_scenario(base_dir):
         axes[2][i].set_xlabel(r"Density [nm$^{-2}$]")
         axes[2][i].set_ylabel(r"V12 [$\mu$V]")
 
-    fig.suptitle(
-        f"$\Delta_g=0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.10$",
-        x=0.5,
-        y=0.98,
-        ha="center",
-        fontsize=20,
-    )
-
     fig.subplots_adjust(top=0.95)
 
-    plt.savefig(f"plots/gappeddirac/allinone.png")
+    plt.savefig(f"plots/allinone.pdf")
 
 
 def narrowleg_scenario(base_dir):
@@ -425,8 +412,9 @@ def ehei_scenario(template, base_dir, type):
 
 
 if __name__ == "__main__":
-    main()
-    # ei_scenario(doublerashba_mkhbar_4t, "data/doublesurfaces_data/rashba/n100", 0)
+    # main()
+    # ei_scenario(doublequad_mkhbar_4t, "data/julia-hpc/juli11bis13/doublequad", 0)
     # ehei_scenario(
     #     new_doubledirac_mkhbar_4t, f"data/doublesurfaces_data/dirac/n100", "v12"
     # )
+    gap_scenario(gappeddirac_mkhbar_4t, r"data/julia-hpc/juli19")

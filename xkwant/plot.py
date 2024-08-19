@@ -33,7 +33,7 @@ def plotpkl_2by2(path_to_data, path_to_save_plots, figsize=(10, 12)):
     densities = data["densities"]
 
     try:
-        syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+        syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
     except KeyError:
         try:
             syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)

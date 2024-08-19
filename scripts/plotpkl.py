@@ -28,15 +28,9 @@ idos = data["idos"]
 idos_energy_range = data["idos_energy_range"]
 densities = data["densities"]
 
-try:
-    syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-except KeyError:
-    try:
-        syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-    except KeyError:
-        syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
+syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
-density_to_label = [0.0013, 0.0024, 0.0037, 0.0052, 0.0071]
+density_to_label = [0.002, 0.0047, 0.0085]
 
 
 max_eng, min_eng = density_to_energy(
@@ -48,7 +42,7 @@ kwant.plotter.bands(
 )
 axes[0][0].axhline(y=max_eng, linestyle="--")
 axes[0][0].axhline(y=min_eng, linestyle="--")
-axes[0][0].set_ylim(-0.1, 0.1)
+axes[0][0].set_ylim(-0.5, 0.5)
 
 axes[0][1].plot(data["densities"], data["voltage_V12"], color="k")
 axes[0][1].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
