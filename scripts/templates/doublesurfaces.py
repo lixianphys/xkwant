@@ -63,61 +63,61 @@ if __name__ == "__main__":
         ly_neck=int(N1 / 6),
     )
 
-    for einv in [0]:
-        print(rf"einv={einv}")
-        for ehyb in [0, 0.02, 0.04, 0.06]:
-            print(rf"   ehyb={ehyb}")
-            # try:
-            hamp_sys = dict(
-                ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
-            )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
-            hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
-            # syst = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            syst_rashba = doublerashba_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            syst_quad = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            syst_dirac = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+    einv = 0
+    print(rf"At einv={einv}")
+    for ehyb in [0, 0.02]:
+        print(rf"   Running ehyb={ehyb}")
+        # try:
+        hamp_sys = dict(
+            ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
+        )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
+        hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
+        # syst = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+        syst_rashba = doublerashba_mkhbar_4t(geop, hamp_sys, hamp_lead)
+        syst_quad = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
+        syst_dirac = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
-            for syst, path_to_save in zip(
-                [syst_rashba, syst_quad, syst_dirac],
-                [
-                    f"data/doublesurfaces_data/rashba",
-                    f"data/doublesurfaces_data/quad",
-                    f"data/doublesurfaces_data/dirac",
-                ],
-            ):
-                vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
-                    syst,
-                    densities=densities,
-                    idos_energy_range=idos_energy_range,
-                    Iin=Iin,
-                    idos_kpm=idos_kpm,
-                )
+        for syst, path_to_save in zip(
+            [syst_rashba, syst_quad, syst_dirac],
+            [
+                f"data/doublesurfaces_data/rashba",
+                f"data/doublesurfaces_data/quad",
+                f"data/doublesurfaces_data/dirac",
+            ],
+        ):
+            vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(
+                syst,
+                densities=densities,
+                idos_energy_range=idos_energy_range,
+                Iin=Iin,
+                idos_kpm=idos_kpm,
+            )
 
-                data = {
-                    "densities": densities,
-                    "idos": idos,
-                    "idos_energy_range": idos_energy_range,
-                    "Iin": Iin,
-                    "idos_kpm": idos_kpm,
-                    "N1": N1,
-                    "L": L,
-                    "geometric_params": geop,
-                    "hamiltonian_params_sys": hamp_sys,
-                    "hamiltonian_params_lead": hamp_lead,
-                    "voltage_V12": vd_v12,
-                    "voltage_V34": vd_v34,
-                }
+            data = {
+                "densities": densities,
+                "idos": idos,
+                "idos_energy_range": idos_energy_range,
+                "Iin": Iin,
+                "idos_kpm": idos_kpm,
+                "N1": N1,
+                "L": L,
+                "geometric_params": geop,
+                "hamiltonian_params_sys": hamp_sys,
+                "hamiltonian_params_lead": hamp_lead,
+                "voltage_V12": vd_v12,
+                "voltage_V34": vd_v34,
+            }
 
-                now = datetime.now()
-                timestamp = now.strftime("%Y%m%d_%H%M")
-                with open(
-                    os.path.join(
-                        path_to_save,
-                        f"dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
-                    ),
-                    "wb",
-                ) as f:
-                    pickle.dump(data, f)
+            now = datetime.now()
+            timestamp = now.strftime("%Y%m%d_%H%M")
+            with open(
+                os.path.join(
+                    path_to_save,
+                    f"dt_{os.path.basename(__file__)}_ei_{einv}_eh_{ehyb}_{timestamp}.pkl",
+                ),
+                "wb",
+            ) as f:
+                pickle.dump(data, f)
             # except ValueError as e:
             #     print(
             #         f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."

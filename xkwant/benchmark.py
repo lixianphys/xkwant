@@ -1,11 +1,3 @@
-# This benchmark is to access the performance and scalability of kwant model.
-# Key parameters:
-# Model_size N: the number of grid units in length direction
-
-'''
-run python benchmark.py template_name
-'''
-
 import time
 import psutil
 
@@ -19,6 +11,14 @@ from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.config import LATTICE_CONST_HGTE
 import xkwant.templates as mytemplates
+
+'''
+This benchmark is to access the performance and scalability of kwant model.
+Key parameters:
+Model_size N: the number of grid units in length direction
+
+run python benchmark.py template_name (include all templates in xkwant/templates.py)
+'''
 
 
 def benchmark_model(template, model_size=10):

@@ -4,6 +4,9 @@ from .physics import *
 from .batch import *
 import scipy.sparse.linalg as sla
 
+'''
+This script is to define the 2d geometric shape of a device. 
+'''
 
 __all__ = ["Hbar"]
 
