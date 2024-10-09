@@ -10,3 +10,7 @@ data/
 *.ipynb
 .idea/
 .vscode/
+# Exclude package building files
+build/
+dist/
+xkwant.egg-info/
