@@ -1,5 +1,5 @@
 ## About Kwant and why xKwant
-Kwant is a powerful open-source Python library designed for numerical calculations on tight-binding models [official website]. Its flexibility allows users and developers to build custom tools tailored for specific needs, which can also benefit a broader community of users. Despite its convenient API, working with Kwant can still involve some repetitive and tedious tasks, especially for batch calculations and parameter tracking. This is where xKwant comes in. 
+Kwant is a powerful open-source Python library designed for numerical calculations on tight-binding models. Its flexibility allows users and developers to build custom tools tailored for specific needs, which can also benefit a broader community of users. Despite its convenient API, working with Kwant can still involve some repetitive and tedious tasks, especially for batch calculations and parameter tracking. This is where xKwant comes in. 
 ## Pain points of using Kwant
 While Kwant provides a convenient API, users often encounter the following challenges:
 - Tedious and Repetitive Code: Despite Kwant's API, performing batch calculations often requires writing similar blocks of code repeatedly, which can be time-consuming and error-prone.
