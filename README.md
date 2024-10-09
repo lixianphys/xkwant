@@ -15,17 +15,18 @@ The tools I’ve developed aim to address these pain points by automating repeti
 These tools significantly reduce the effort required to build, analyze, and manage tight-binding models in Kwant, providing a more efficient workflow for complex simulations.
 
 #### Core functionalities
+```bash
 xkwant
-├── batch.py  `batch calculation`
-├── benchmark.py   `benchmarking new templates`
-├── config.py   `configuration settings`
-├── device.py `templates to define a device in 2d-space` 
-├── log.py `tracking parameters, inputs and outputs`
-├── physics.py `physics constants`
-├── plot.py `plotting tools`
-├── templates.py `templates to run calculations (reduce redundancy)`
-└── utils.py `utilities`
-
+├── batch.py         # batch calculation
+├── benchmark.py     # benchmarking new templates
+├── config.py        # configuration settings
+├── device.py        # templates to define a device in 2D space
+├── log.py           # tracking parameters, inputs, and outputs
+├── physics.py       # physics constants
+├── plot.py          # plotting tools
+├── templates.py     # templates to run calculations (reduce redundancy)
+└── utils.py         # utilities
+```
 #### Scripts
 store your script here.
 
