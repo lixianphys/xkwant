@@ -9,10 +9,10 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .batch import *
-from .templates import *
-from .physics import *
-from .utils import *
+from xkwant.batch import *
+from xkwant.templates import *
+from xkwant.physics import *
+from xkwant.utils import *
 
 
 def benchmark_model(model_size):
