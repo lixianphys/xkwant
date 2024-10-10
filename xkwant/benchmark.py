@@ -21,7 +21,7 @@ This benchmark is to access the performance and scalability of kwant model.
 Key parameters:
 Model_size N: the number of grid units in length direction
 
-run python benchmark.py template_name (include all templates in xkwant/templates.py)
+run python benchmark.py template_name (include all templates in xkwant/templates.py) model_sizes (a Python list)
 '''
 
 
