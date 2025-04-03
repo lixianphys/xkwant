@@ -5,7 +5,6 @@ import kwant
 import random
 import numpy as np
 from typing import Union
-from abc import ABC, abstractmethod
 from xkwant.physics import *
 from xkwant.schemas import GeomParams, HamParams
 

@@ -15,17 +15,15 @@ class GeomParams():
 
 @dataclass
 class HamParams():
-    hop: Union[float, int] = 0 # hopping
-    mass: Union[float, int] = inf # mass
-    wilson: Union[float, int] = 0 # Wilson term 
-    soc: Union[float, int] = 0 # spin-orbit coupling
-    inv: Union[float, int] = 0 # inversion symmetry
-    hyb: Union[float, int] = 0 # hybridization
+    hop: Union[float, int] = 0 # hopping vs, vl
+    mass: Union[float, int] = inf # mass ms, ml
+    wilson: Union[float, int] = 0 # Wilson term ws, wl
+    soc: Union[float, int] = 0 # spin-orbit coupling ts, tl
+    inv: Union[float, int] = 0 # inversion symmetry invs, invl
+    hyb: Union[float, int] = 0 # hybridization hybs, hybl
     gapped: Union[float, int] = 0 # gap at k=0 for Dirac dispersion
     wdis: Union[float, int] = 0 # disorder strength
     def to_dict(self):
         return self.__dict__
 
-if __name__ == "__main__":
-    geop = GeomParams(a=1, lx_leg=20, ly_leg=20, lx_neck=10, ly_neck=10)
-    print(geop.to_dict())
+        

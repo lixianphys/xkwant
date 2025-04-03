@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import cumulative_trapezoid
 
-# __all__ = ['energy_to_density','density_to_energy','get_idos','get_idos_kpm']
+__all__ = ['energy_to_density','density_to_energy','get_idos','get_dos_kpm','prepare_plot']
 
 
 def find_position(sorted_list, x):
@@ -14,9 +14,8 @@ def find_position(sorted_list, x):
         sorted_list
     ):  # Normal: x is not larger than all elements in sorted_list.
         return index
-    return (
-        -1
-    )  # x is larger than all elements in sorted_list, return -1 to indicate error
+    return -1
+     # x is larger than all elements in sorted_list, return -1 to indicate error
 
 
 def energy_to_density(idos, energies, energy):
@@ -110,7 +109,6 @@ def get_dos_kpm(syst, energy_resolution):
 
 
 ############### Plot ###############################
-
 
 def prepare_plot(xlabel: str, xlim: tuple, ylabel=None, ylabel2=None, figsize=(10, 6)):
     """prepare axes for complex plots"""
