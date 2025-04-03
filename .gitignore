@@ -14,3 +14,5 @@ data/
 build/
 dist/
 xkwant.egg-info/
+poetry.lock
+xkwant/_plot.py

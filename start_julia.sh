@@ -13,10 +13,12 @@ echo "Initialized Conda"
 conda activate MyKwant
 echo "Activated MyKwant conda env"
 
+pip3 install tqdm
+echo "pip installed tqdm"
+
+
 python setup.py install
 echo "Installed xkwant by setup.py"
 
-pip3 install tqdm
-echo "pip installed tqdm"
 
 python -W ignore scripts/hpc.py
