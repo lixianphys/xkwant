@@ -1,36 +1,69 @@
+"""
+This module contains the templates for building Hbar-shaped devices with various Hamiltonians.
+"""
 import kwant
 import random
 import numpy as np
-from .physics import *
+from typing import Union
+from abc import ABC, abstractmethod
+from xkwant.physics import *
+from xkwant.schemas import GeomParams, HamParams
+
+__all__ = [
+    "doublerashba_mkhbar_4t",
+    "doublequad_mkhbar_4t",
+    "doubledirac_mkhbar_4t",
+    "gappeddirac_mkhbar_4t",
+    "mkhbar_4t",
+    "mkhbar_6t",
+]
 
 
 def doublerashba_mkhbar_4t(
-    geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None
-):
+    geop: GeomParams, hamp_sys: HamParams, hamp_lead: HamParams=None, finalized:bool=False, conservation_law=None
+) -> Union[kwant.Builder, kwant.Builder.finalized]:
+    """
+    Constructs the system consisting of two identical Rashba surface states and includes inversion symmetry breaking term and hybridization term.
+
+    Parameters
+    ----------
+    geop: GeomParams
+        Geometric parameters for the scattering region
+    hamp_sys: HamParams
+        Hamiltonian parameters for the scattering region
+    hamp_lead: HamParams
+        Hamiltonian parameters for the leads
+    finalized: bool
+        Whether to finalize the system
+    conservation_law:
+        Conservation law for the system
+    """
     from .device import Hbar
+    if hamp_lead is None:
+        hamp_lead = hamp_sys
 
     syst = Hbar(geop)
     syst.set_ham_params(hamp_sys)
-    ts, tl = hamp_sys["ts"], hamp_lead["tl"]
-    ms, ml = hamp_sys["ms"], hamp_lead["ml"]
-    ws, wl = hamp_sys["ws"], hamp_lead["wl"]
-    vs, vl = hamp_sys["vs"], hamp_lead["vl"]
+    ts, tl = hamp_sys.hop, hamp_lead.hop
+    ms, ml = hamp_sys.mass, hamp_lead.mass
+    ws, wl = hamp_sys.wilson, hamp_lead.wilson
+    vs, vl = hamp_sys.soc, hamp_lead.soc
 
     invs, invl = (
-        hamp_sys["invs"],
-        hamp_lead["invl"],
+        hamp_sys.inv,
+        hamp_lead.inv,
     )  # this term is inversion breaking term.
     hybs, hybl = (
-        hamp_sys["hybs"],
-        hamp_lead["hybl"],
+        hamp_sys.hyb,
+        hamp_lead.hyb,
     )
 
     # Geometric parameters for the scattering region
-    lx_leg = geop["lx_leg"]
-    ly_leg = geop["ly_leg"]
-    lx_neck = geop["lx_neck"]
-    ly_neck = geop["ly_neck"]
-    a = geop["a"]  # lattice constant a
+    lx_leg = geop.lx_leg
+    ly_leg = geop.ly_leg
+    lx_neck = geop.lx_neck
+    ly_neck = geop.ly_neck
+    a = geop.a  # lattice constant a
 
     lat = kwant.lattice.square(a, norbs=4)
     tau_0 = s_0
@@ -166,29 +199,47 @@ def doublerashba_mkhbar_4t(
 
 
 def doublequad_mkhbar_4t(
-    geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None
-):
+    geop: GeomParams, hamp_sys: HamParams, hamp_lead: HamParams=None, finalized:bool=False, conservation_law=None
+)-> Union[kwant.Builder, kwant.Builder.finalized]:
+    """
+    Constructs the system consisting of two identical quadratic surface states and includes inversion symmetry breaking term and hybridization term.
+
+    Parameters
+    ----------
+    geop: GeomParams
+        Geometric parameters for the scattering region
+    hamp_sys: HamParams
+        Hamiltonian parameters for the scattering region
+    hamp_lead: HamParams
+        Hamiltonian parameters for the leads
+    finalized: bool
+        Whether to finalize the system
+    conservation_law:
+        Conservation law for the system
+    """
     from .device import Hbar
+    if hamp_lead is None:
+        hamp_lead = hamp_sys
 
     syst = Hbar(geop)
     syst.set_ham_params(hamp_sys)
-    ts, tl = hamp_sys["ts"], hamp_lead["tl"]
-    ms, ml = hamp_sys["ms"], hamp_lead["ml"]
+    ts, tl = hamp_sys.hop, hamp_lead.hop
+    ms, ml = hamp_sys.mass, hamp_lead.mass
 
     invs, invl = (
-        hamp_sys["invs"],
-        hamp_lead["invl"],
+        hamp_sys.inv,
+        hamp_lead.inv,
     )  # this term is inversion breaking term.
     hybs, hybl = (
-        hamp_sys["hybs"],
-        hamp_lead["hybl"],
+        hamp_sys.hyb,
+        hamp_lead.hyb,
     )
     # Geometric parameters for the scattering region
-    lx_leg = geop["lx_leg"]
-    ly_leg = geop["ly_leg"]
-    lx_neck = geop["lx_neck"]
-    ly_neck = geop["ly_neck"]
-    a = geop["a"]  # lattice constant a
+    lx_leg = geop.lx_leg
+    ly_leg = geop.ly_leg
+    lx_neck = geop.lx_neck
+    ly_neck = geop.ly_neck
+    a = geop.a  # lattice constant a
 
     lat = kwant.lattice.square(a, norbs=2)
     tau_0 = s_0
@@ -292,29 +343,46 @@ def doublequad_mkhbar_4t(
 
 
 def doubledirac_mkhbar_4t(
-    geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None
-):
-    from .device import Hbar
+    geop: GeomParams, hamp_sys: HamParams, hamp_lead: HamParams=None, finalized:bool=False, conservation_law=None
+)-> Union[kwant.Builder, kwant.Builder.finalized]:
+    """
+    Constructs the system consisting of two identical Dirac surface states and includes inversion symmetry breaking term and hybridization term.
 
+    Parameters
+    ----------
+    geop: GeomParams
+        Geometric parameters for the scattering region
+    hamp_sys: HamParams
+        Hamiltonian parameters for the scattering region
+    hamp_lead: HamParams
+        Hamiltonian parameters for the leads
+    finalized: bool
+        Whether to finalize the system
+    conservation_law:
+        Conservation law for the system
+    """
+    from .device import Hbar
+    if hamp_lead is None:
+        hamp_lead = hamp_sys
     syst = Hbar(geop)
     syst.set_ham_params(hamp_sys)
-    ws, wl = hamp_sys["ws"], hamp_lead["wl"]
-    vs, vl = hamp_sys["vs"], hamp_lead["vl"]
+    ws, wl = hamp_sys.wilson, hamp_lead.wilson
+    vs, vl = hamp_sys.soc, hamp_lead.soc
     invs, invl = (
-        hamp_sys["invs"],
-        hamp_lead["invl"],
+        hamp_sys.inv,
+        hamp_lead.inv,
     )  # this term is inversion breaking term.
     # hamiltonian parameters only belong to the scattering region: disorder strength Wdis
     hybs, hybl = (
-        hamp_sys["hybs"],
-        hamp_lead["hybl"],
+        hamp_sys.hyb,
+        hamp_lead.hyb,
     )
     # Geometric parameters for the scattering region
-    lx_leg = geop["lx_leg"]
-    ly_leg = geop["ly_leg"]
-    lx_neck = geop["lx_neck"]
-    ly_neck = geop["ly_neck"]
-    a = geop["a"]  # lattice constant a
+    lx_leg = geop.lx_leg
+    ly_leg = geop.ly_leg
+    lx_neck = geop.lx_neck
+    ly_neck = geop.ly_neck
+    a = geop.a  # lattice constant a
 
     lat = kwant.lattice.square(a, norbs=4)
     tau_0 = s_0
@@ -426,25 +494,41 @@ def doubledirac_mkhbar_4t(
 
 
 def gappeddirac_mkhbar_4t(
-    geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None
-):
+    geop: GeomParams, hamp_sys: HamParams, hamp_lead: HamParams=None, finalized:bool=False, conservation_law=None
+)-> Union[kwant.Builder, kwant.Builder.finalized]:
+    """
+    Constructs the system consisting of one gapped Dirac surface states and includes a gap term "gapped".
+
+    Parameters
+    ----------
+    geop: GeomParams
+        Geometric parameters for the scattering region
+    hamp_sys: HamParams
+        Hamiltonian parameters for the scattering region
+    hamp_lead: HamParams
+        Hamiltonian parameters for the leads
+    finalized: bool
+        Whether to finalize the system
+    conservation_law: 
+        Conservation law for the system
+    """
     from .device import Hbar  # place this inside function to avoid circular import
 
     syst = Hbar(geop)
     syst.set_ham_params(hamp_sys)
     # Hamiltonian parameters belong to both scattering region and leads
-    ws, wl = hamp_sys["ws"], hamp_lead["wl"]
-    vs, vl = hamp_sys["vs"], hamp_lead["vl"]
+    ws, wl = hamp_sys.wilson, hamp_lead.wilson
+    vs, vl = hamp_sys.soc, hamp_lead.soc
     ds, dl = (
-        hamp_sys["ds"],
-        hamp_lead["dl"],
+        hamp_sys.gapped,
+        hamp_lead.gapped,
     )  # this term is the gap of the dirac dispersion at k=0.
     # Geometric parameters for the scattering region
-    lx_leg = geop["lx_leg"]
-    ly_leg = geop["ly_leg"]
-    lx_neck = geop["lx_neck"]
-    ly_neck = geop["ly_neck"]
-    a = geop["a"]  # lattice constant a
+    lx_leg = geop.lx_leg
+    ly_leg = geop.ly_leg
+    lx_neck = geop.lx_neck
+    ly_neck = geop.ly_neck
+    a = geop.a  # lattice constant a
 
     lat = kwant.lattice.square(a, norbs=2)
 
@@ -545,25 +629,39 @@ def gappeddirac_mkhbar_4t(
         return syst
 
 
-def mkhbar_4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=None):
+def mkhbar_4t(geop: GeomParams, hamp_sys: HamParams, hamp_lead: HamParams=None, finalized:bool=False, conservation_law=None)-> Union[kwant.Builder, kwant.Builder.finalized]:
     from .device import Hbar  # place this inside function to avoid circular import
+    """
+    Constructs a general hbar-shaped system consisting of four terminals.
 
-    """ Return a hbar-shaped FiniteSystem or Builder() with four terminals"""
+    Parameters
+    ----------
+    geop: GeomParams
+        Geometric parameters for the scattering region
+    hamp_sys: HamParams
+        Hamiltonian parameters for the scattering region
+    hamp_lead: HamParams
+        Hamiltonian parameters for the leads
+    finalized: bool
+        Whether to finalize the system
+    conservation_law:
+        Conservation law for the system
+    """
     syst = Hbar(geop)
     syst.set_ham_params(hamp_sys)
     # Hamiltonian parameters belong to both scattering region and leads
-    ts, tl = hamp_sys["ts"], hamp_lead["tl"]
-    ws, wl = hamp_sys["ws"], hamp_lead["wl"]
-    vs, vl = hamp_sys["vs"], hamp_lead["vl"]
-    ms, ml = hamp_sys["ms"], hamp_lead["ml"]
+    ts, tl = hamp_sys.hop, hamp_lead.hop
+    ws, wl = hamp_sys.wilson, hamp_lead.wilson
+    vs, vl = hamp_sys.soc, hamp_lead.soc
+    ms, ml = hamp_sys.mass, hamp_lead.mass
     # hamiltonian parameters only belong to the scattering region: disorder strength Wdis
-    Wdis = hamp_sys["Wdis"]
+    Wdis = hamp_sys.wdis
     # Geometric parameters for the scattering region
-    lx_leg = geop["lx_leg"]
-    ly_leg = geop["ly_leg"]
-    lx_neck = geop["lx_neck"]
-    ly_neck = geop["ly_neck"]
-    a = geop["a"]  # lattice constant a
+    lx_leg = geop.lx_leg
+    ly_leg = geop.ly_leg
+    lx_neck = geop.lx_neck
+    ly_neck = geop.ly_neck
+    a = geop.a  # lattice constant a
 
     lat = kwant.lattice.square(a, norbs=2)
 
@@ -664,15 +762,15 @@ def mkhbar_4t(geop, hamp_sys, hamp_lead=None, finalized=False, conservation_law=
         return syst
 
 
-def mkhbar_6t(geop, hamp_sys, hamp_lead, finalized=False):
+def mkhbar_6t(geop: GeomParams, hamp_sys: HamParams, hamp_lead: HamParams=None, finalized=False)-> Union[kwant.Builder, kwant.Builder.finalized]:
     """Return a hbar-shaped FiniteSystem or Builder() with six terminals"""
     # import a normal 4-terminal system to start with, convervation_law = -s_z to ensure independent spin channels
     syst = mkhbar_4t(geop, hamp_sys, hamp_lead, finalized=False, conservation_law=-s_z)
-    tl = hamp_lead["tl"]
-    wl = hamp_lead["wl"]
-    vl = hamp_lead["vl"]
-    ml = hamp_lead["ml"]
-    a = geop["a"]
+    tl = hamp_lead.hop
+    wl = hamp_lead.wilson
+    vl = hamp_lead.soc
+    ml = hamp_lead.mass
+    a = geop.a
     lx_leg = syst.lx_leg
     lx_neck = syst.lx_neck
 

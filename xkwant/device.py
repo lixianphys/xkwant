@@ -1,30 +1,28 @@
-from kwant import Builder, TranslationalSymmetry
-from kwant.continuum import discretize, sympify, build_discretized, discretize_symbolic
-from .physics import *
-from .batch import *
-import scipy.sparse.linalg as sla
+'''
+This script is to define the 2d geometric shape of a device. So far, only Hbar is implemented.
+'''
 
-'''
-This script is to define the 2d geometric shape of a device. 
-'''
+from kwant import Builder, TranslationalSymmetry
+from kwant.continuum import discretize, sympify
+from xkwant.physics import *
+from xkwant.schemas import GeomParams, HamParams
 
 __all__ = ["Hbar"]
 
-
 class Hbar(Builder):
-    def __init__(self, geo_params):
+    def __init__(self, geo_params: GeomParams)->None:
         super(Hbar, self).__init__()
-        self.lx_leg = geo_params["lx_leg"]  # in units of a, the lattice constant
-        self.ly_leg = geo_params["ly_leg"]
-        self.lx_neck = geo_params["lx_neck"]
-        self.ly_neck = geo_params["ly_neck"]
-        self.a = geo_params["a"]
+        self.lx_leg = geo_params.lx_leg  # in units of a, the lattice constant
+        self.ly_leg = geo_params.ly_leg
+        self.lx_neck = geo_params.lx_neck
+        self.ly_neck = geo_params.ly_neck
+        self.a = geo_params.a
         self.area = (self.lx_leg * self.ly_leg * 2 + self.lx_neck * self.ly_neck) * (
             self.a**2
         )  # This area in units of nm^2 can be used for estimating the carrier density
-        self.ham_params = dict()
+        self.ham_params = HamParams()
 
-    def __str__(self):
+    def __str__(self)->str:
         formatted_ham_params = ", ".join(
             f"{key}={value}" for key, value in self.ham_params.items()
         )
@@ -35,7 +33,7 @@ class Hbar(Builder):
             f"Hamitonian parameters: {formatted_ham_params}"
         )
 
-    def build_byfill(self, continuum_model, params):
+    def build_byfill(self, continuum_model: str, params: dict)->None:
         self.set_ham_params(params)
         # template = build_discretized(*discretize_symbolic(continuum_model))
         model_params = sympify(continuum_model, locals=params)
@@ -59,8 +57,8 @@ class Hbar(Builder):
 
         self.fill(template, hbar_shape, start=(0, 0))
 
-    def attach_lead_byfill(self, continuum_model, params, pos, conservation_law=None):
-        # template = build_discretized(*discretize_symbolic(continuum_model))
+    def attach_lead_byfill(self, continuum_model: str, params: dict, pos: str, conservation_law=None)->None:
+
         model_params = sympify(continuum_model, locals=params)
         template = discretize(model_params, grid=self.a)
         if pos.upper() == "BL":
@@ -106,19 +104,5 @@ class Hbar(Builder):
         else:
             raise ValueError(f"pos can only be BL, TL, BR, TR (case non-sensitive)")
 
-    def ham_bfield(self, Bfields, num_ev):
-        """Find the eigenvalues for each magnetic field value in Bfields. Make sure magnetic
-        field B is implemented in Hamiltonian with symbol B"""
-        if self.H == {}:
-            return f"This Hbar system does not contain any sites."
-        energies = []
-        for B in Bfields:
-            ham_mat = self.hamiltonin_submatrix(params=dict(B=B), sparse=True)
-            ev = sla.eigsh(
-                ham_mat.tocsc(), k=num_ev, sigma=0, return_eigenvectors=False
-            )
-            energies.append(ev)
-        return energies
-
-    def set_ham_params(self, params):
+    def set_ham_params(self, params: HamParams):
         self.ham_params = params

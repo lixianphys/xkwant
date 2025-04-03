@@ -1,3 +1,11 @@
+"""
+This benchmark is to access the performance and scalability of kwant model.
+Key parameters:
+Model_size N: the number of grid units in length direction
+
+run python benchmark.py template_name (include all templates in xkwant/templates.py) model_sizes (a Python list)
+"""
+
 import time
 import psutil
 
@@ -14,15 +22,7 @@ from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.config import LATTICE_CONST_HGTE
 import xkwant.templates as mytemplates
-
-
-'''
-This benchmark is to access the performance and scalability of kwant model.
-Key parameters:
-Model_size N: the number of grid units in length direction
-
-run python benchmark.py template_name (include all templates in xkwant/templates.py) model_sizes (a Python list)
-'''
+from xkwant.schemas import GeomParams, HamParams
 
 
 def benchmark_model(template, model_size=10):
@@ -34,7 +34,7 @@ def benchmark_model(template, model_size=10):
     Iin = 10e-9  # A
     N1 = model_size
     L = LATTICE_CONST_HGTE * N1
-    geop = dict(
+    geop = GeomParams(
         a=L / N1,
         lx_leg=int(N1),
         ly_leg=int(N1 / 6),
@@ -42,8 +42,8 @@ def benchmark_model(template, model_size=10):
         ly_neck=int(N1 / 6),
     )
 
-    hamp_sys = dict(ts=0, ws=0.1, vs=0.3, ms=0.05, Wdis=0, invs=0, hybs=0)
-    hamp_lead = dict(tl=0, wl=0.1, vl=0.3, ml=0.05, invl=0, hybl=0)
+    hamp_sys = HamParams(hop=0, mass=0.1, soc=0.3, wilson=0.05, inv=0, hyb=0)
+    hamp_lead = HamParams(hop=0, mass=0.1, soc=0.3, wilson=0.05, inv=0, hyb=0)
 
     syst = template(geop, hamp_sys, hamp_lead)  # This system won't be changed anymore
     get_idos(syst, energy_range)
@@ -57,27 +57,28 @@ def benchmark_model(template, model_size=10):
 
     execution_time = end_time - start_time
     memory_usage = memory_after - memory_before
-    num_sites = syst.area / geop["a"] ** 2
+    num_sites = syst.area / geop.a ** 2
 
     return num_sites, execution_time, memory_usage
 
 @click.command()
 @click.argument("template_name", required=False, default="mkhbar_4t")
-@click.argument("model_sizes", required=False, default="[10,10,20,50]")
+@click.argument("model_sizes", required=False, default="[10,20,30,40,50]")
 def benchmark(template_name,model_sizes):
     model_sizes = ast.literal_eval(model_sizes)
     try:
         template = getattr(mytemplates, template_name)
         click.echo(f"Benchmarking template: {template_name}")
 
-
-        # You can now use the `template` in your benchmarking logic
     except AttributeError:
         click.echo(f"Template {template_name} not found in the module xkwant.templates", err=True)
         raise SystemExit(1)
 
 
     results = []
+    # cold start to run the first time, to avoid the overhead of the first run
+    _ = benchmark_model(template,10)
+
     for model_size in model_sizes:
         print(f"running model_size={model_size}")
         num_sites, execution_time, memory_usage = benchmark_model(template,model_size)
@@ -110,5 +111,4 @@ def benchmark(template_name,model_sizes):
     plt.show()
 
 if __name__ == "__main__":
-    
     benchmark()

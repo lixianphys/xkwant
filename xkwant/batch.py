@@ -1,13 +1,13 @@
 import kwant
 import numpy as np
 from copy import copy
-from typing import Iterable
+from typing import Iterable, Union
 from tqdm import tqdm
-from .physics import *
-from .utils import get_idos
+from xkwant.physics import *
+from xkwant.utils import get_idos
+from xkwant.schemas import GeomParams, HamParams
 
 __all__ = [
-    "j_at_terminal",
     "vary_energy_vvector_4t",
     "vary_energy_vvector_6t",
     "varyx_voltage_4t",
@@ -20,117 +20,26 @@ __all__ = [
 ]
 
 
-def j_at_terminal(syst, wf_lead, which_terminal):
-    """Calculate the charge current due to the propagation modes (wf_lead) from a single lead to the terminal defined by which_terminal
-    Parameters
-    ----------
-    fsyst : `FiniteSystem` instance
-    p : dict-like
-    wf_lead : kwant.wave_function from a single lead
-    which_terminal : 'lu','ll','ru','rl','ml','mu'
 
-    Returns
-    -------
-    Raises
-    ------
-    Notes
-    -----
-    """
-    lx_leg = syst.lx_leg
-    ly_leg = syst.ly_leg
-    ly_neck = syst.ly_neck
-    lx_neck = syst.lx_neck
-
-    def cutpos(which_terminal):
-        def left_upper_lead(site_to, site_from):
-            return (
-                site_from.pos[0] <= 0
-                and site_to.pos[0] > 0
-                and site_from.pos[1] >= ly_leg + ly_neck
-                and site_to.pos[1] >= ly_leg + ly_neck
-            )
-
-        def left_lower_lead(site_to, site_from):
-            return (
-                site_from.pos[0] <= 0
-                and site_to.pos[0] > 0
-                and site_from.pos[1] < ly_leg
-                and site_to.pos[1] < ly_leg
-            )
-
-        def right_upper_lead(site_to, site_from):
-            return (
-                site_from.pos[0] <= lx_leg - 2
-                and site_to.pos[0] > lx_leg - 2
-                and site_from.pos[1] >= ly_leg + ly_neck
-                and site_to.pos[1] >= ly_leg + ly_neck
-            )
-
-        def right_lower_lead(site_to, site_from):
-            return (
-                site_from.pos[0] <= lx_leg - 2
-                and site_to.pos[0] > lx_leg - 2
-                and site_from.pos[1] < ly_leg
-                and site_to.pos[1] < ly_leg
-            )
-
-        def middle_lower_lead(site_to, site_from):
-            return (
-                site_from.pos[1] <= 0
-                and site_to.pos[1] > 0
-                and site_from.pos[0] >= lx_leg // 2 - lx_neck // 2
-                and site_from.pos[0] < lx_leg // 2 + lx_neck // 2
-                and site_to.pos[0] >= lx_leg // 2 - lx_neck // 2
-                and site_to.pos[0] < lx_leg // 2 + lx_neck // 2
-            )
-
-        def middle_upper_lead(site_to, site_from):
-            return (
-                site_from.pos[1] < ly_leg * 2 + ly_neck - 1
-                and site_to.pos[1] >= ly_leg * 2 + ly_neck - 1
-                and site_from.pos[0] >= lx_leg // 2 - lx_neck // 2
-                and site_from.pos[0] < lx_leg // 2 + lx_neck // 2
-                and site_to.pos[0] >= lx_leg // 2 - lx_neck // 2
-                and site_to.pos[0] < lx_leg // 2 + lx_neck // 2
-            )
-
-        if which_terminal == "lu":
-            return left_upper_lead
-        elif which_terminal == "ll":
-            return left_lower_lead
-        elif which_terminal == "ru":
-            return right_upper_lead
-        elif which_terminal == "rl":
-            return right_lower_lead
-        elif which_terminal == "ml":
-            return middle_lower_lead
-        else:
-            return middle_upper_lead
-
-    fsyst = syst.finalized()
-    j_operator = kwant.operator.Current(fsyst, where=cutpos(which_terminal), sum=True)
-    return (j_operator(mode) for mode in wf_lead)
-
-
-def rho_at_site(syst, wf_lead):
+def _rho_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function)->tuple:
     fsyst = syst.finalized()
     rho_operator = kwant.operator.Density(fsyst, sum=False)
     return (rho_operator(mode) for mode in wf_lead)
 
 
-def rhoz_at_site(syst, wf_lead, rhoz_op=sigma_z):
+def _rhoz_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function, rhoz_op=sigma_z)->tuple:
     fsyst = syst.finalized()
     rhoz_operator = kwant.operator.Density(fsyst, rhoz_op, sum=False)
     return (rhoz_operator(mode) for mode in wf_lead)
 
 
-def j_at_site(syst, wf_lead):
+def _j_at_site(syst:kwant.Builder, wf_lead:kwant.wave_function)->tuple:
     fsyst = syst.finalized()
     j_operator = kwant.operator.Current(fsyst, sum=False)
     return (j_operator(mode) for mode in wf_lead)
 
 
-def rho_j_energy_site(syst, energy: float):
+def rho_j_energy_site(syst: kwant.Builder, energy: float)->tuple:
     """Calculate charge density/curent on each site at a specific energy"""
     fsyst = syst.finalized()
     # Determine the size of the arrays needed
@@ -153,15 +62,37 @@ def rho_j_energy_site(syst, energy: float):
     for which_lead in range(num_leads):
         modes = wf(which_lead)
         for mode_idx, rho_idx, j_idx in zip(
-            range(len(modes)), rho_at_site(syst, modes), j_at_site(syst, modes)
+            range(len(modes)), _rho_at_site(syst, modes), _j_at_site(syst, modes)
         ):
             rho_site[which_lead, mode_idx] = rho_idx  # rho_site[#lead][#mode][#site]
             j_site[which_lead, mode_idx] = j_idx
     return rho_site, j_site
 
 
-def vvector_4t(syst, energy: float, ivector=[0, 0, 1, -1]):
-    ivec = copy(ivector)
+def vvector_4t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
+    """
+    Calculate the voltage vector for a 4-terminal system
+
+    Parameters
+    ----------
+    syst : kwant.Builder
+        The system to calculate the voltage vector for
+    energy : float
+        The energy to calculate the voltage vector for
+    ivector : list
+        The current vector to calculate the voltage vector for
+
+    Returns
+    -------
+    tuple
+        The voltage vector for the 4-terminal system
+    """
+    if ivector is None:
+        ivector = [0, 0, 1, -1]
+    if len(ivector) != 4:
+        raise ValueError("ivector should be a list of 4 elements")
+
+    ivec = copy(ivector) 
     fsyst = syst.finalized()
     which_ground = ivector.index(
         min(ivector)
@@ -205,7 +136,28 @@ def vvector_4t(syst, energy: float, ivector=[0, 0, 1, -1]):
     return tuple(vvec)
 
 
-def vvector_6t(syst, energy: float, ivector=[0, 0, 1, -1, 0, 0]):
+def vvector_6t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
+    """
+    Calculate the voltage vector for a 6-terminal system
+
+    Parameters
+    ----------
+    syst : kwant.Builder
+        The system to calculate the voltage vector for
+    energy : float
+        The energy to calculate the voltage vector for
+    ivector : list
+        The current vector to calculate the voltage vector for
+
+    Returns
+    -------
+    tuple
+        The voltage vector for the 6-terminal system
+    """
+    if ivector is None:
+        ivector = [0, 0, 1, -1, 0, 0]
+    if len(ivector) != 6:
+        raise ValueError("ivector should be a list of 6 elements")
     ivec = copy(ivector)
     fsyst = syst.finalized()
     sm = kwant.smatrix(fsyst, energy)
@@ -302,7 +254,22 @@ def vvector_6t(syst, energy: float, ivector=[0, 0, 1, -1, 0, 0]):
     return vvec, Is5up, Is5down
 
 
-def vary_energy_vvector_4t(syst, energies: Iterable, ivector=[0, 0, 1, -1]):
+def vary_energy_vvector_4t(syst: kwant.Builder, energies: Iterable, ivector=None)->tuple:
+    """
+    Calculate the voltage vector for a 4-terminal system at a range of energies
+
+    Parameters
+    ----------
+    syst : kwant.Builder
+        The system to calculate the voltage vector for
+    energies : Iterable
+        The energies to calculate the voltage vector for
+    ivector : list
+        The current vector to calculate the voltage vector for
+
+    """
+    if ivector is None:
+        ivector = [0, 0, 1, -1]
     vvec = []
     for energy in tqdm(energies, desc="Progress", ascii=False, ncols=75):
         vvec_at_this_energy = vvector_4t(syst, energy, ivector)
@@ -310,7 +277,22 @@ def vary_energy_vvector_4t(syst, energies: Iterable, ivector=[0, 0, 1, -1]):
     return vvec
 
 
-def vary_energy_vvector_6t(syst, energies: Iterable, ivector=[0, 0, 1, -1, 0, 0]):
+def vary_energy_vvector_6t(syst: kwant.Builder, energies: Iterable, ivector=None)->tuple:
+    """
+    Calculate the voltage vector for a 6-terminal system at a range of energies
+
+    Parameters
+    ----------
+    syst : kwant.Builder
+        The system to calculate the voltage vector for
+    energies : Iterable
+        The energies to calculate the voltage vector for
+    ivector : list
+        The current vector to calculate the voltage vector for
+
+    """
+    if ivector is None:
+        ivector = [0, 0, 1, -1, 0, 0]
     vvec = []
     Is5up = []
     Is5down = []
@@ -325,69 +307,119 @@ def vary_energy_vvector_6t(syst, energies: Iterable, ivector=[0, 0, 1, -1, 0, 0]
 
 
 #### Middle level #####
-
-
 def varyx_voltage_4t(
-    mktemplate, geop, hamp_sys, hamp_lead, xkey, xvalue, energy, ivector=[0, 0, 1, -1]
+    mktemplate:callable, geop:GeomParams, hamp_sys:HamParams, hamp_lead:HamParams, xkey:Union[str,tuple], xvalue:Union[float,tuple], energy:float, ivector=None
 ):
-    if isinstance(xkey, str):
-        if xkey in geop:
-            geop[xkey] = xvalue
-        elif xkey in hamp_sys:
-            hamp_sys[xkey] = xvalue
-        elif xkey in hamp_lead:
-            hamp_lead[xkey] = xvalue
+    """
+    Vary the parameters of the system and calculate the voltage vector for a 4-terminal system
+
+    Parameters
+    ----------
+    mktemplate : callable
+        The template to use for the system
+    geop : GeomParams
+        The geometry parameters of the system
+    hamp_sys : HamParams
+        The Hamiltonian parameters of the system
+    hamp_lead : HamParams
+        The Hamiltonian parameters of the leads
+    xkey : str or tuple
+        The key to vary the parameters of the system
+    xvalue : float or tuple
+        The value to vary the parameters of the system
+    energy : float
+        The energy to calculate the voltage vector for
+    ivector : list
+        The current vector to calculate the voltage vector for
+
+    """
+    if ivector is None:
+        ivector = [0, 0, 1, -1]
+    if len(ivector) != 4:
+        raise ValueError("ivector should be a list of 4 elements")
+    if isinstance(xkey, str) and isinstance(xvalue, (int, float)):
+        if xkey in geop.to_dict().keys():
+            setattr(geop, xkey, xvalue)
+        elif xkey.endswith("_sys") and xkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+            setattr(hamp_sys, xkey.replace("_sys", ""), xvalue)
+        elif xkey.endswith("_lead") and xkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+            setattr(hamp_lead, xkey.replace("_lead", ""), xvalue)
         else:
             raise ValueError(f"The key {xkey} does not exit")
     elif isinstance(xkey, tuple) and isinstance(xvalue, tuple):
         for xxkey, xxvalue in zip(xkey, xvalue):
-            if xxkey in geop:
-                geop[xxkey] = xxvalue
-            elif xxkey in hamp_sys:
-                hamp_sys[xxkey] = xxvalue
-            elif xxkey in hamp_lead:
-                hamp_lead[xxkey] = xxvalue
+            if xxkey in geop.to_dict().keys():
+                setattr(geop, xxkey, xxvalue)
+            elif xxkey.endswith("_sys") and xxkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+                setattr(hamp_sys, xxkey.replace("_sys", ""), xxvalue)
+            elif xxkey.endswith("_lead") and xxkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+                setattr(hamp_lead, xxkey.replace("_lead", ""), xxvalue)
             else:
                 raise ValueError(f"The key {xxkey} does not exit")
     else:
         raise ValueError(
             "(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)"
         )
-    syst = mktemplate(geop, hamp_sys, hamp_lead, False)
+    syst = mktemplate(geop = geop, hamp_sys = hamp_sys, hamp_lead = hamp_lead, finalized=False)
+
     if len(syst.leads) != 4:
         raise ValueError("template should make a system with 4 terminals")
-    return vvector_4t(syst, energy, ivector)
+    vvec = vvector_4t(syst, energy, ivector)
+    del syst
+    return vvec
 
 
 def varyx_voltage_6t(
-    mktemplate,
-    geop,
-    hamp_sys,
-    hamp_lead,
-    xkey,
-    xvalue,
-    energy,
-    ivector=[0, 0, 1, -1, 0, 0],
+    mktemplate:callable,
+    geop:GeomParams,
+    hamp_sys:HamParams,
+    hamp_lead:HamParams,
+    xkey:Union[str,tuple],
+    xvalue:Union[float,tuple],
+    energy:float,
+    ivector=None,
 ):
-    if isinstance(xkey, str):
-        if xkey in geop:
-            geop[xkey] = xvalue
-        elif xkey in hamp_sys:
-            hamp_sys[xkey] = xvalue
-        elif xkey in hamp_lead:
-            hamp_lead[xkey] = xvalue
+    """
+    Vary the parameters of the system and calculate the voltage vector for a 6-terminal system
+
+    Parameters
+    ----------
+    mktemplate : callable
+        The template function to use for the system
+    geop : GeomParams
+        The geometry parameters of the system
+    hamp_sys : HamParams
+        The Hamiltonian parameters of the system
+    hamp_lead : HamParams
+        The Hamiltonian parameters of the leads
+    xkey : str or tuple
+        The key to vary the parameters of the system
+    xvalue : float or tuple
+        The value to vary the parameters of the system
+    """
+    if ivector is None:
+        ivector = [0, 0, 1, -1, 0, 0]
+    if len(ivector) != 6:
+        raise ValueError("ivector should be a list of 6 elements")
+    if isinstance(xkey, str) and isinstance(xvalue, (int, float)):
+        if xkey in geop.to_dict().keys():
+            setattr(geop, xkey, xvalue)
+        elif xkey.endswith("_sys") and xkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+            setattr(hamp_sys, xkey.replace("_sys", ""), xvalue)
+        elif xkey.endswith("_lead") and xkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+            setattr(hamp_lead, xkey.replace("_lead", ""), xvalue)
         else:
             raise ValueError(f"The key {xkey} does not exit")
     elif isinstance(xkey, tuple) and isinstance(xvalue, tuple):
         for xxkey, xxvalue in zip(xkey, xvalue):
-            if xxkey in geop:
-                geop[xxkey] = xxvalue
-            elif xxkey in hamp_sys:
-                hamp_sys[xxkey] = xxvalue
-            elif xxkey in hamp_lead:
-                hamp_lead[xxkey] = xxvalue
+            if xxkey in geop.to_dict().keys():
+                setattr(geop, xxkey, xxvalue)
+            elif xxkey.endswith("_sys") and xxkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+                setattr(hamp_sys, xxkey.replace("_sys", ""), xxvalue)
+            elif xxkey.endswith("_lead") and xxkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+                setattr(hamp_lead, xxkey.replace("_lead", ""), xxvalue)
             else:
-                raise ValueError(f"The key {xxkey} does not exit")
+                raise ValueError(f"The key {xxkey} does not exit") 
     else:
         raise ValueError(
             "(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)"
@@ -395,66 +427,165 @@ def varyx_voltage_6t(
     syst = mktemplate(geop, hamp_sys, hamp_lead, False)
     if len(syst.leads) != 6:
         raise ValueError("template should make a system with 6 terminals")
-    return vvector_6t(syst, energy, ivector)
+    vvec, Is5up, Is5down = vvector_6t(syst, energy, ivector)
+    del syst
+    return vvec, Is5up, Is5down
 
 
 def varyx_rho_j_energy_site(
     mktemplate, geop, hamp_sys, hamp_lead, xkey, xvalue, energy: float
 ):
-    if isinstance(xkey, str):
-        if xkey in geop:
-            geop[xkey] = xvalue
-        elif xkey in hamp_sys:
-            hamp_sys[xkey] = xvalue
-        elif xkey in hamp_lead:
-            hamp_lead[xkey] = xvalue
+    """
+    Vary the parameters of the system and calculate the charge density/current on each site at a specific energy for a set of parameters defined by xkey and xvalue
+    """
+    if isinstance(xkey, str) and isinstance(xvalue, (int, float)):
+        if xkey in geop.to_dict().keys():
+            setattr(geop, xkey, xvalue)
+        elif xkey.endswith("_sys") and xkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+            setattr(hamp_sys, xkey.replace("_sys", ""), xvalue)
+        elif xkey.endswith("_lead") and xkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+            setattr(hamp_lead, xkey.replace("_lead", ""), xvalue)
         else:
             raise ValueError(f"The key {xkey} does not exit")
     elif isinstance(xkey, tuple) and isinstance(xvalue, tuple):
         for xxkey, xxvalue in zip(xkey, xvalue):
-            if xxkey in geop:
-                geop[xxkey] = xxvalue
-            elif xxkey in hamp_sys:
-                hamp_sys[xxkey] = xxvalue
-            elif xxkey in hamp_lead:
-                hamp_lead[xxkey] = xxvalue
+            if xxkey in geop.to_dict().keys():
+                setattr(geop, xxkey, xxvalue)
+            elif xxkey.endswith("_sys") and xxkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+                setattr(hamp_sys, xxkey.replace("_sys", ""), xxvalue)
+            elif xxkey.endswith("_lead") and xxkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+                setattr(hamp_lead, xxkey.replace("_lead", ""), xxvalue)
             else:
-                raise ValueError(f"The key {xxkey} does not exit")
+                raise ValueError(f"The key {xxkey} does not exit") 
     else:
-        raise ValueError(
-            "(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)"
+        raise TypeError(
+            "(xkey, xvalue) should be either (str,numbers) or (tuple,tuple)"
         )
     syst = mktemplate(geop, hamp_sys, hamp_lead, False)
-    return rho_j_energy_site(syst, energy)
+    rho_site, j_site = rho_j_energy_site(syst, energy)
+    del syst
+    return rho_site, j_site
 
 
 def varyx_idos(
     mktemplate, geop, hamp_sys, hamp_lead, xkey, xvalue, energy_range: Iterable
 ):
-    if isinstance(xkey, str):
-        if xkey in geop:
-            geop[xkey] = xvalue
-        elif xkey in hamp_sys:
-            hamp_sys[xkey] = xvalue
-        elif xkey in hamp_lead:
-            hamp_lead[xkey] = xvalue
+    if isinstance(xkey, str) and isinstance(xvalue, (int, float)):
+        if xkey in geop.to_dict().keys():
+            setattr(geop, xkey, xvalue)
+        elif xkey.endswith("_sys") and xkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+            setattr(hamp_sys, xkey.replace("_sys", ""), xvalue)
+        elif xkey.endswith("_lead") and xkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+            setattr(hamp_lead, xkey.replace("_lead", ""), xvalue)
         else:
             raise ValueError(f"The key {xkey} does not exit")
     elif isinstance(xkey, tuple) and isinstance(xvalue, tuple):
         for xxkey, xxvalue in zip(xkey, xvalue):
-            if xxkey in geop:
-                geop[xxkey] = xxvalue
-            elif xxkey in hamp_sys:
-                hamp_sys[xxkey] = xxvalue
-            elif xxkey in hamp_lead:
-                hamp_lead[xxkey] = xxvalue
+            if xxkey in geop.to_dict().keys():
+                setattr(geop, xxkey, xxvalue)
+            elif xxkey.endswith("_sys") and xxkey.replace("_sys", "") in hamp_sys.to_dict().keys():
+                setattr(hamp_sys, xxkey.replace("_sys", ""), xxvalue)
+            elif xxkey.endswith("_lead") and xxkey.replace("_lead", "") in hamp_lead.to_dict().keys():
+                setattr(hamp_lead, xxkey.replace("_lead", ""), xxvalue)
             else:
-                raise ValueError(f"The key {xxkey} does not exit")
+                raise ValueError(f"The key {xxkey} does not exit") 
     else:
         raise ValueError(
             "(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)"
         )
 
     syst = mktemplate(geop, hamp_sys, hamp_lead)
+    idos = get_idos(syst, energy_range)
+    del syst
+    return idos
 
-    return get_idos(syst, energy_range)
+
+def j_at_terminal(syst: kwant.Builder, wf_lead: kwant.wave_function, which_terminal: str)->tuple[np.ndarray, np.ndarray]:
+    """Calculate the charge current due to the propagation modes (wf_lead) from a single lead to the terminal defined by which_terminal
+    Parameters
+    ----------
+    syst : `FiniteSystem` instance
+    wf_lead : kwant.wave_function from a single lead
+    which_terminal : 'lu','ll','ru','rl','ml','mu'
+
+    Returns
+    -------
+    Raises
+    ------
+    Notes
+    -----
+    """
+    lx_leg = syst.lx_leg
+    ly_leg = syst.ly_leg
+    ly_neck = syst.ly_neck
+    lx_neck = syst.lx_neck
+
+    def cutpos(which_terminal):
+        def left_upper_lead(site_to, site_from):
+            return (
+                site_from.pos[0] <= 0
+                and site_to.pos[0] > 0
+                and site_from.pos[1] >= ly_leg + ly_neck
+                and site_to.pos[1] >= ly_leg + ly_neck
+            )
+
+        def left_lower_lead(site_to, site_from):
+            return (
+                site_from.pos[0] <= 0
+                and site_to.pos[0] > 0
+                and site_from.pos[1] < ly_leg
+                and site_to.pos[1] < ly_leg
+            )
+
+        def right_upper_lead(site_to, site_from):
+            return (
+                site_from.pos[0] <= lx_leg - 2
+                and site_to.pos[0] > lx_leg - 2
+                and site_from.pos[1] >= ly_leg + ly_neck
+                and site_to.pos[1] >= ly_leg + ly_neck
+            )
+
+        def right_lower_lead(site_to, site_from):
+            return (
+                site_from.pos[0] <= lx_leg - 2
+                and site_to.pos[0] > lx_leg - 2
+                and site_from.pos[1] < ly_leg
+                and site_to.pos[1] < ly_leg
+            )
+
+        def middle_lower_lead(site_to, site_from):
+            return (
+                site_from.pos[1] <= 0
+                and site_to.pos[1] > 0
+                and site_from.pos[0] >= lx_leg // 2 - lx_neck // 2
+                and site_from.pos[0] < lx_leg // 2 + lx_neck // 2
+                and site_to.pos[0] >= lx_leg // 2 - lx_neck // 2
+                and site_to.pos[0] < lx_leg // 2 + lx_neck // 2
+            )
+
+        def middle_upper_lead(site_to, site_from):
+            return (
+                site_from.pos[1] < ly_leg * 2 + ly_neck - 1
+                and site_to.pos[1] >= ly_leg * 2 + ly_neck - 1
+                and site_from.pos[0] >= lx_leg // 2 - lx_neck // 2
+                and site_from.pos[0] < lx_leg // 2 + lx_neck // 2
+                and site_to.pos[0] >= lx_leg // 2 - lx_neck // 2
+                and site_to.pos[0] < lx_leg // 2 + lx_neck // 2
+            )
+
+        if which_terminal == "lu":
+            return left_upper_lead
+        elif which_terminal == "ll":
+            return left_lower_lead
+        elif which_terminal == "ru":
+            return right_upper_lead
+        elif which_terminal == "rl":
+            return right_lower_lead
+        elif which_terminal == "ml":
+            return middle_lower_lead
+        else:
+            return middle_upper_lead
+
+    fsyst = syst.finalized()
+    j_operator = kwant.operator.Current(fsyst, where=cutpos(which_terminal), sum=True)
+    return (j_operator(mode) for mode in wf_lead)
