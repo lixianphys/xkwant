@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 from xkwant.templates import *
-from xkwant.utils import density_to_energy, get_idos
-from xkwant.config import DEFAULT_CMAP, LATTICE_CONST_HGTE
-from xkwant.physics import tk
+from xkwant.utils import get_idos
+from xkwant.physics import tk, LATTICE_CONST_HGTE
+import numpy as np
+import kwant
 
 
 all_eh_values = np.arange(0, 0.15, 0.05)
