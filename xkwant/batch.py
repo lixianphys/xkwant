@@ -20,26 +20,27 @@ __all__ = [
 ]
 
 
-
-def _rho_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function)->tuple:
+def _rho_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function) -> tuple:
     fsyst = syst.finalized()
     rho_operator = kwant.operator.Density(fsyst, sum=False)
     return (rho_operator(mode) for mode in wf_lead)
 
 
-def _rhoz_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function, rhoz_op=sigma_z)->tuple:
+def _rhoz_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function, rhoz_op=sigma_z) -> tuple:
     fsyst = syst.finalized()
     rhoz_operator = kwant.operator.Density(fsyst, rhoz_op, sum=False)
     return (rhoz_operator(mode) for mode in wf_lead)
 
 
-def _j_at_site(syst:kwant.Builder, wf_lead:kwant.wave_function)->tuple:
+def _j_at_site(syst: kwant.Builder, wf_lead: kwant.wave_function) -> tuple:
     fsyst = syst.finalized()
     j_operator = kwant.operator.Current(fsyst, sum=False)
     return (j_operator(mode) for mode in wf_lead)
 
 
-def rho_j_energy_site(syst: kwant.Builder, energy: float)->tuple:
+def rho_j_energy_site(
+    syst: kwant.Builder, 
+    energy: float) -> tuple:
     """Calculate charge density/curent on each site at a specific energy"""
     fsyst = syst.finalized()
     # Determine the size of the arrays needed
@@ -69,7 +70,11 @@ def rho_j_energy_site(syst: kwant.Builder, energy: float)->tuple:
     return rho_site, j_site
 
 
-def vvector_4t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
+def vvector_4t(
+    syst: kwant.Builder,
+    energy: float,
+    ivector: list = None
+) -> tuple:
     """
     Calculate the voltage vector for a 4-terminal system
 
@@ -92,7 +97,7 @@ def vvector_4t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
     if len(ivector) != 4:
         raise ValueError("ivector should be a list of 4 elements")
 
-    ivec = copy(ivector) 
+    ivec = copy(ivector)
     fsyst = syst.finalized()
     which_ground = ivector.index(
         min(ivector)
@@ -131,12 +136,17 @@ def vvector_4t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
     try:
         vvec = list(np.linalg.solve(e2h * Gmat, ivec))
         vvec.insert(which_ground, 0)
-    except:
+    except Exception as e:
+        print(f"Failed to calculate the voltage vector due to {e}, return nan")
         vvec = [np.nan] * 4
     return tuple(vvec)
 
 
-def vvector_6t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
+def vvector_6t(
+    syst: kwant.Builder,
+    energy: float,
+    ivector: list = None
+) -> tuple:
     """
     Calculate the voltage vector for a 6-terminal system
 
@@ -246,7 +256,8 @@ def vvector_6t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
                 + (tm(4, 1, 5, 0) + tm(4, 1, 5, 1)) * (vvec[4] - vvec[5])
             )
         )
-    except:
+    except Exception as e:
+        print(f"Failed to calculate the voltage vector due to {e}, return nan")
         vvec = tuple([np.nan] * 6)
         Is5up = np.nan
         Is5down = np.nan
@@ -254,7 +265,11 @@ def vvector_6t(syst: kwant.Builder, energy: float, ivector=None)->tuple:
     return vvec, Is5up, Is5down
 
 
-def vary_energy_vvector_4t(syst: kwant.Builder, energies: Iterable, ivector=None)->tuple:
+def vary_energy_vvector_4t(
+    syst: kwant.Builder,
+    energies: Iterable,
+    ivector: list = None
+) -> tuple:
     """
     Calculate the voltage vector for a 4-terminal system at a range of energies
 
@@ -277,7 +292,11 @@ def vary_energy_vvector_4t(syst: kwant.Builder, energies: Iterable, ivector=None
     return vvec
 
 
-def vary_energy_vvector_6t(syst: kwant.Builder, energies: Iterable, ivector=None)->tuple:
+def vary_energy_vvector_6t(
+    syst: kwant.Builder,
+    energies: Iterable,
+    ivector: list = None
+) -> tuple:
     """
     Calculate the voltage vector for a 6-terminal system at a range of energies
 
@@ -306,10 +325,16 @@ def vary_energy_vvector_6t(syst: kwant.Builder, energies: Iterable, ivector=None
     return vvec, Is5up, Is5down
 
 
-#### Middle level #####
 def varyx_voltage_4t(
-    mktemplate:callable, geop:GeomParams, hamp_sys:HamParams, hamp_lead:HamParams, xkey:Union[str,tuple], xvalue:Union[float,tuple], energy:float, ivector=None
-):
+    mktemplate: callable,
+    geop: GeomParams,
+    hamp_sys: HamParams,
+    hamp_lead: HamParams,
+    xkey: Union[str,tuple],
+    xvalue: Union[float,tuple],
+    energy: float,
+    ivector: list = None
+) -> tuple:
     """
     Vary the parameters of the system and calculate the voltage vector for a 4-terminal system
 
@@ -357,9 +382,8 @@ def varyx_voltage_4t(
             else:
                 raise ValueError(f"The key {xxkey} does not exit")
     else:
-        raise ValueError(
-            "(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)"
-        )
+        raise ValueError("(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)")
+
     syst = mktemplate(geop = geop, hamp_sys = hamp_sys, hamp_lead = hamp_lead, finalized=False)
 
     if len(syst.leads) != 4:
@@ -370,15 +394,15 @@ def varyx_voltage_4t(
 
 
 def varyx_voltage_6t(
-    mktemplate:callable,
-    geop:GeomParams,
-    hamp_sys:HamParams,
-    hamp_lead:HamParams,
-    xkey:Union[str,tuple],
-    xvalue:Union[float,tuple],
-    energy:float,
-    ivector=None,
-):
+    mktemplate: callable,
+    geop: GeomParams,
+    hamp_sys: HamParams,
+    hamp_lead: HamParams,
+    xkey: Union[str, tuple],
+    xvalue: Union[float, tuple],
+    energy: float,
+    ivector: list | None = None,
+) -> tuple:
     """
     Vary the parameters of the system and calculate the voltage vector for a 6-terminal system
 
@@ -421,9 +445,7 @@ def varyx_voltage_6t(
             else:
                 raise ValueError(f"The key {xxkey} does not exit") 
     else:
-        raise ValueError(
-            "(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)"
-        )
+        raise ValueError("(xkey,xvalue) should be either (str,numbers) or (tuple,tuple)")
     syst = mktemplate(geop, hamp_sys, hamp_lead, False)
     if len(syst.leads) != 6:
         raise ValueError("template should make a system with 6 terminals")
@@ -433,8 +455,14 @@ def varyx_voltage_6t(
 
 
 def varyx_rho_j_energy_site(
-    mktemplate, geop, hamp_sys, hamp_lead, xkey, xvalue, energy: float
-):
+    mktemplate: callable, 
+    geop: GeomParams, 
+    hamp_sys: HamParams, 
+    hamp_lead: HamParams, 
+    xkey: Union[str,tuple], 
+    xvalue: Union[float,tuple], 
+    energy: float
+) -> tuple:
     """
     Vary the parameters of the system and calculate the charge density/current on each site at a specific energy for a set of parameters defined by xkey and xvalue
     """
@@ -468,8 +496,14 @@ def varyx_rho_j_energy_site(
 
 
 def varyx_idos(
-    mktemplate, geop, hamp_sys, hamp_lead, xkey, xvalue, energy_range: Iterable
-):
+    mktemplate: callable,
+    geop: GeomParams,
+    hamp_sys: HamParams,
+    hamp_lead: HamParams,
+    xkey: Union[str, tuple],
+    xvalue: Union[float, tuple],
+    energy_range: Iterable
+) -> tuple:
     if isinstance(xkey, str) and isinstance(xvalue, (int, float)):
         if xkey in geop.to_dict().keys():
             setattr(geop, xkey, xvalue)

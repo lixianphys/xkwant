@@ -4,10 +4,10 @@ This script is to define the 2d geometric shape of a device. So far, only Hbar i
 
 from kwant import Builder, TranslationalSymmetry
 from kwant.continuum import discretize, sympify
-from xkwant.physics import *
 from xkwant.schemas import GeomParams, HamParams
 
 __all__ = ["Hbar"]
+
 
 class Hbar(Builder):
     def __init__(self, geo_params: GeomParams)->None:
@@ -102,7 +102,7 @@ class Hbar(Builder):
             )
             self.attach_lead(top_right_lead)
         else:
-            raise ValueError(f"pos can only be BL, TL, BR, TR (case non-sensitive)")
+            raise ValueError("pos can only be BL, TL, BR, TR (case non-sensitive)")
 
     def set_ham_params(self, params: HamParams):
         self.ham_params = params

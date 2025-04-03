@@ -532,7 +532,6 @@ def gappeddirac_mkhbar_4t(
     lat = kwant.lattice.square(a, norbs=2)
 
     def onsite(site):
-        rand_num = random.uniform(-1, 1)
         return 4 * ws * s_z + ds * s_z
 
     def lead_onsite(site):
@@ -837,7 +836,7 @@ def mkhbar_4t_magf(
 
     lat = kwant.lattice.square(a, norbs=2)
 
-    def onsite(site):  #  mu is the chem pot of the system
+    def onsite(site):  # mu is the chem pot of the system
         rand_num = random.uniform(-1, 1)
         return (4 * ts / (ms * a**2) + Wdis * rand_num) * s_0 + 4 * ws * s_z
 

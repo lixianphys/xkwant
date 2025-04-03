@@ -21,4 +21,3 @@ sigma_y = s_y  # Alias
 sigma_z = s_z  # Alias
 
 LATTICE_CONST_HGTE = 0.646  # lattice constant of HgTe in nm from Wikipedia
-

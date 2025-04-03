@@ -8,18 +8,17 @@ from scipy.integrate import cumulative_trapezoid
 __all__ = ['energy_to_density','density_to_energy','get_idos','get_dos_kpm','prepare_plot']
 
 
-def find_position(sorted_list, x):
+def _find_position(sorted_list, x):
     index = bisect.bisect_left(sorted_list, x)
     if index != len(
         sorted_list
     ):  # Normal: x is not larger than all elements in sorted_list.
         return index
     return -1
-     # x is larger than all elements in sorted_list, return -1 to indicate error
 
 
 def energy_to_density(idos, energies, energy):
-    index = find_position(energies, energy)
+    index = _find_position(energies, energy)
     if index == -1:
         raise ValueError(
             "The given energy is too high to predict its corresponding density. Add more DOS values at higher energies in idos"
@@ -30,7 +29,7 @@ def energy_to_density(idos, energies, energy):
 
 
 def density_to_energy(idos, energies, density):
-    index = find_position(idos, density)
+    index = _find_position(idos, density)
     if index == -1:
         raise ValueError(
             "The given density is too high to predict its corresponding energy. Add more DOS values at higher energies in idos"
@@ -57,10 +56,6 @@ def get_idos(syst, energy_range, use_kpm=False):
         energy_resolution = (
             (max(energy_range) - min(energy_range)) * 5 / len(energy_range)
         )
-        # if len(syst.leads)!=0:
-        #     print('len(syst.leads)!=0')
-        #     syst = copy.deepcopy(syst) # create a copy for later manipulation, do not alter the input Builder instance
-        #     syst.leads = [] # remove all leads for using get_dos_kpm
         dos, energies = get_dos_kpm(syst, energy_resolution)
         dos = np.real(dos)  # To extract the real part
         dos = dos[energies > 0]  # Ignore DOS below zero energy
@@ -70,7 +65,7 @@ def get_idos(syst, energy_range, use_kpm=False):
         energy_range = energies[
             (energies >= min(energy_range)) & (energies <= max(energy_range))
         ]  # the energies here should include all possible eigenvalue of energy
-        lowest_index = find_position(energies, min(energy_range))
+        lowest_index = _find_position(energies, min(energy_range))
         idos = idos[
             lowest_index : lowest_index + len(energy_range)
         ]  # This ensure the returned idos and energy_range have the same length
@@ -101,14 +96,12 @@ def get_dos_kpm(syst, energy_resolution):
     spectrum = kwant.kpm.SpectralDensity(fsyst, rng=0)
     try:
         spectrum.add_moments(energy_resolution=energy_resolution)
-    except ValueError as e:
+    except ValueError:
         print("Fall back: Default resolution from kwant.kpm.SpectralDensity is used")
     energies, densities = spectrum()
     dos = [density / syst.area for density in densities]
     return dos, energies
 
-
-############### Plot ###############################
 
 def prepare_plot(xlabel: str, xlim: tuple, ylabel=None, ylabel2=None, figsize=(10, 6)):
     """prepare axes for complex plots"""

@@ -5,6 +5,7 @@ import sys
 
 __all__ = ["log_function_call"]
 
+
 def log_function_call(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):

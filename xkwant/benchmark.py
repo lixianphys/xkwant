@@ -30,7 +30,6 @@ def benchmark_model(template, model_size=10):
     memory_before = process.memory_info().rss
 
     energy_range = np.arange(0.1, 0.5, 0.01)
-    Iin = 10e-9  # A
     N1 = model_size
     L = LATTICE_CONST_HGTE * N1
     geop = GeomParams(
@@ -60,6 +59,7 @@ def benchmark_model(template, model_size=10):
 
     return num_sites, execution_time, memory_usage
 
+
 @click.command()
 @click.argument("template_name", required=False, default="mkhbar_4t")
 @click.argument("model_sizes", required=False, default="[10,20,30,40,50]")
@@ -72,12 +72,9 @@ def benchmark(template_name,model_sizes):
     except AttributeError:
         click.echo(f"Template {template_name} not found in the module xkwant.templates", err=True)
         raise SystemExit(1)
-
-
     results = []
     # cold start to run the first time, to avoid the overhead of the first run
     _ = benchmark_model(template,10)
-
     for model_size in model_sizes:
         print(f"running model_size={model_size}")
         num_sites, execution_time, memory_usage = benchmark_model(template,model_size)
@@ -96,18 +93,19 @@ def benchmark(template_name,model_sizes):
     ax1.scatter(
         df["model_size"].tolist()[1:],
         df["execution_time"].tolist()[1:],
-        label=f"Execution Time ",
+        label="Execution Time ",
     )
     ax2.scatter(
         df["num_sites"].tolist()[1:],
         df["execution_time"].tolist()[1:],
-        label=f"Memory Usage",
+        label="Memory Usage",
     )
     ax1.set_xlabel("Model Size in 1D")
     ax2.set_xlabel("Number of Sites (2D)")
     ax1.set_ylabel("Execution Time [Second]")
     ax2.set_ylabel("Execution Time [Second]")
     plt.show()
+
 
 if __name__ == "__main__":
     benchmark()
