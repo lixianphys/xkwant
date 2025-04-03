@@ -6,8 +6,7 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-from xkwant.config import LATTICE_CONST_HGTE
-
+from xkwant.schemas import HamParams, GeomParams
 
 @log_function_call
 def main(
@@ -48,11 +47,11 @@ if __name__ == "__main__":
     densities = np.arange(0.001, 0.009, 0.0001)
     Iin = 10e-9  # A
     # grid parameters
-    N1 = 1000  # the number of lattices in the longitudinal direction
+    N1 = 20  # the number of lattices in the longitudinal direction
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
-    geop = dict(
+    geop = GeomParams(
         a=L / N1,
         lx_leg=int(N1),
         ly_leg=int(N1 / 6),
@@ -64,8 +63,8 @@ if __name__ == "__main__":
         idos_energy_range = np.arange(0, 0.2, 0.001)
         print(f"gap={gap}")
         try:
-            hamp_sys = dict(ws=0.1, vs=0.28, ds=gap)
-            hamp_lead = dict(wl=0.1, vl=0.28, dl=gap)
+            hamp_sys = HamParams(wilson=0.1, soc=0.28, gapped=gap)
+            hamp_lead = HamParams(wilson=0.1, soc=0.28, gapped=gap)
             syst = gappeddirac_mkhbar_4t(
                 geop, hamp_sys, hamp_lead
             )  # This system won't be changed anymore

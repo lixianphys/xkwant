@@ -8,150 +8,8 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-
-
-@log_function_call
-def dirac_vary_lambda(
-    lamd=np.linspace(4, 80, 20),
-    single_lead_current=False,
-    target_density=0.01,
-    savepath=None,
-):
-    """A copy from rashba_vary_lambda, but instead using a pure Dirac-type Hamiltonian defined by lambda"""
-    if savepath is None:
-        savepath = os.getcwd()
-    Iin = 10e-9  # A
-    deltaV12_inmuV = []
-    deltaV34_inmuV = []
-    target_energies = []
-    # grid parameters
-    N1, L = 36, 90
-    # core parameters
-    geop = dict(
-        lx_leg=int(N1), ly_leg=int(N1 / 6), lx_neck=int(N1 / 6), ly_neck=int(N1 / 6)
-    )
-    hamp_sys = dict(ts=0, ws=0.1 / 3, vs=0.1, ms=0.05, Wdis=0, a=L / N1)
-    hamp_lead = dict(tl=0, wl=0.1 / 3, vl=0.1, ml=0.05)
-
-    # First calculate the integral density of state to further derive the target energy for later calculations which correspond to the fixed target density
-    energy_range = np.arange(0, 0.06, 0.0001)
-    target_energies = [
-        density_to_energy(
-            *varyx_idos(
-                mkhbar_4t,
-                geop,
-                hamp_sys,
-                hamp_lead,
-                ("vs", "vl", "ws", "wl"),
-                (xvalue, xvalue, xvalue / 3, xvalue / 3),
-                energy_range,
-            ),
-            target_density,
-        )
-        for xvalue in (la / 1e3 for la in lamd)
-    ]
-    # calculate terminal voltages in a 4 terminal hbar
-    voltages_list = [
-        varyx_voltage_4t(
-            mkhbar_4t,
-            geop,
-            hamp_sys,
-            hamp_lead,
-            ("vs", "vl", "ws", "wl"),
-            (xvalue, xvalue, xvalue / 3, xvalue / 3),
-            energy,
-            [0, 0, Iin, -Iin],
-        )
-        for xvalue, energy in zip((la / 1e3 for la in lamd), target_energies)
-    ]
-    deltaV12_inmuV = [(volts[0] - volts[1]) * 1e6 for volts in voltages_list]
-    deltaV34_inmuV = [(volts[2] - volts[3]) * 1e6 for volts in voltages_list]
-
-    # Calculate more local quantities and plot them separately for each \lambda value
-    for i, (xvalue, energy, voltages) in enumerate(
-        zip((la / 1e3 for la in lamd), target_energies, voltages_list)
-    ):
-        rho_site, J_site = varyx_rho_j_energy_site(
-            mkhbar_4t,
-            geop,
-            hamp_sys,
-            hamp_lead,
-            ("vs", "vl", "ws", "wl"),
-            (xvalue, xvalue, xvalue / 3, xvalue / 3),
-            energy,
-        )
-        sys_dirac = mkhbar_4t(geop, hamp_sys, hamp_lead).finalized()
-        print(f"hamp_sys:{hamp_sys}")
-        if rho_site is not None:
-            total_modes = len(rho_site[0])
-            print(
-                f"At $\\lambda$={xvalue*1e3}, the number of modes:{total_modes}, the energy is {energy:0.5f}"
-            )
-            fig, axs = prepare_plot(
-                xlabel="$\\lambda$ [meV nm]",
-                xlim=(min(lamd) - 1, max(lamd) + 1),
-                ylabel2="$\\Delta V_{12}(\\lambda)$ [$\\mu$V]",
-                figsize=(10, 6),
-            )
-            kwant.plotter.density(
-                sys_dirac,
-                np.array(
-                    sum(
-                        rho_site[0][mode_num]
-                        + rho_site[1][mode_num]
-                        + rho_site[2][mode_num]
-                        + rho_site[3][mode_num]
-                        for mode_num in range(total_modes)
-                    )
-                ),
-                ax=axs[0, 1],
-                cmap=DEFAULT_CMAP,
-            )
-            if single_lead_current:
-                kwant.plotter.current(
-                    sys_dirac,
-                    np.array(
-                        sum(J_site[3][mode_num] for mode_num in range(total_modes))
-                    ),
-                    ax=axs[1, 1],
-                    cmap=DEFAULT_CMAP,
-                    linecolor="w",
-                )  # electron flow from this lead (grounded) to others
-            else:
-                kwant.plotter.current(
-                    sys_dirac,
-                    sum(
-                        J_site[0][mode_num] * voltages[0]
-                        + J_site[1][mode_num] * voltages[1]
-                        + J_site[2][mode_num] * voltages[2]
-                        for mode_num in range(total_modes)
-                    ),
-                    ax=axs[1, 1],
-                    cmap=DEFAULT_CMAP,
-                    linecolor="w",
-                )
-            axs[0, 0].plot(lamd, deltaV12_inmuV)
-            axs[0, 0].scatter(lamd, deltaV12_inmuV)
-            axs[0, 0].scatter(xvalue * 1e3, deltaV12_inmuV[i], color="red", s=100)
-
-            axs[1, 0].plot(lamd, deltaV34_inmuV)
-            axs[1, 0].scatter(lamd, deltaV34_inmuV)
-            axs[1, 0].scatter(xvalue * 1e3, deltaV34_inmuV[i], color="red", s=100)
-
-            plt.savefig(
-                os.path.join(
-                    savepath, f"dirac_lambda_{xvalue*1e3}_density_{target_density}.png"
-                )
-            )
-            plt.close(fig)  # to avoid 'figure.max_open_warning'
-
-        else:
-            print(
-                f"Warning: no mode appears at the energy = {energy}, thus calculation for the local density failed"
-            )
-
-    return lamd, deltaV12_inmuV, deltaV34_inmuV
-
+from xkwant.schemas import HamParams, GeomParams
+DEFAULT_CMAP = "jet"
 
 @log_function_call
 def main(
@@ -282,7 +140,7 @@ if __name__ == "__main__":
     N1 = 300
     L = N1 * LATTICE_CONST_HGTE
     # core parameters
-    geop = dict(
+    geop = GeomParams(
         a=L / N1,
         lx_leg=int(N1),
         ly_leg=int(N1 / 6),
@@ -291,8 +149,8 @@ if __name__ == "__main__":
     )
     for gap in [0, 0.01]:
         try:
-            hamp_sys = dict(ts=0, ws=0.1, vs=lambda_val, ds=gap, ms=0.05, Wdis=0)
-            hamp_lead = dict(tl=0, wl=0.1, vl=lambda_val, dl=gap, ml=0.05)
+            hamp_sys = HamParams(hop=0, wilson=0.1, soc=lambda_val, gapped=gap, mass=0.05, wdis=0)
+            hamp_lead = HamParams(hop=0, wilson=0.1, soc=lambda_val, gapped=gap, mass=0.05)
             syst = gappeddirac_mkhbar_4t(
                 geop, hamp_sys, hamp_lead
             )  # This system won't be changed anymore
@@ -336,25 +194,3 @@ if __name__ == "__main__":
             print(f"Calculation for gap={gap} failed, but continue..")
             continue
 
-    # max_eng, min_eng = density_to_energy(
-    #     idos, idos_energy_range, max(densities)
-    # ), density_to_energy(idos, idos_energy_range, min(densities))
-
-    # fig, axes = plt.subplots(2, 2, figsize=(12, 12), tight_layout=True)
-    # kwant.plotter.bands(syst.finalized().leads[0], ax=axes[0][0])
-    # axes[0][0].axhline(y=max_eng, linestyle="--")
-    # axes[0][0].axhline(y=min_eng, linestyle="--")
-
-    # axes[0][1].plot(data["densities"], data["voltage_V12"], color="k")
-    # axes[0][1].scatter(data["densities"], data["voltage_V12"], s=15, color="r")
-    # axes[0][1].set_xlabel("Density [nm$^{-2}$]")
-    # axes[0][1].set_ylabel("V34 [$\\mu$V]")
-    # axes[1][1].plot(data["densities"], data["voltage_V34"], color="k")
-    # axes[1][1].scatter(data["densities"], data["voltage_V34"], s=15, color="r")
-    # axes[1][1].set_xlabel("Density [nm$^{-2}$]")
-    # axes[1][1].set_ylabel("V12 [$\\mu$V]")
-    # axes[1][0].plot(data["idos"], data["idos_energy_range"], color="k")
-    # axes[1][0].scatter(data["idos"], data["idos_energy_range"], s=15, color="r")
-    # axes[1][0].set_xlabel("Density [nm$^{-2}$]")
-    # axes[1][0].set_ylabel("Energy [eV]")
-    # plt.show()

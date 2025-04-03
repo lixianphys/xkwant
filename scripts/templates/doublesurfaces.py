@@ -7,8 +7,7 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-from xkwant.config import DEFAULT_CMAP, LATTICE_CONST_HGTE
-
+from xkwant.schemas import HamParams, GeomParams
 
 @log_function_call
 def main(
@@ -55,7 +54,7 @@ if __name__ == "__main__":
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
-    geop = dict(
+    geop = GeomParams(
         a=L / N1,
         lx_leg=int(N1),
         ly_leg=int(N1 / 6),
@@ -68,10 +67,10 @@ if __name__ == "__main__":
     for ehyb in [0, 0.02]:
         print(rf"   Running ehyb={ehyb}")
         # try:
-        hamp_sys = dict(
-            ws=0.1, vs=0.28, invs=einv, hybs=ehyb, ms=0.05, ts=tk
+        hamp_sys = HamParams(
+            wilson=0.1, soc=0.28, inv=einv, hyb=ehyb, mass=0.05, hop=tk
         )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
-        hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb, ml=0.05, tl=tk)
+        hamp_lead = HamParams(wilson=0.1, soc=0.28, inv=einv, hyb=ehyb, mass=0.05, hop=tk)
         # syst = new_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
         syst_rashba = doublerashba_mkhbar_4t(geop, hamp_sys, hamp_lead)
         syst_quad = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
@@ -118,8 +117,4 @@ if __name__ == "__main__":
                 "wb",
             ) as f:
                 pickle.dump(data, f)
-            # except ValueError as e:
-            #     print(
-            #         f"Calculations for einv={einv} and ehyb={ehyb} failed, but continue.."
-            #     )
-            #     continue
+

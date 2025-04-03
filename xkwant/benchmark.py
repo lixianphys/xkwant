@@ -20,7 +20,6 @@ from xkwant.batch import *
 from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
-from xkwant.config import LATTICE_CONST_HGTE
 import xkwant.templates as mytemplates
 from xkwant.schemas import GeomParams, HamParams
 

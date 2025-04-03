@@ -8,8 +8,8 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-from xkwant.config import DEFAULT_CMAP
-
+from xkwant.schemas import HamParams, GeomParams
+DEFAULT_CMAP = "jet"
 
 @log_function_call
 def main(
@@ -138,15 +138,15 @@ if __name__ == "__main__":
     # grid parameters
     N1, L = 72, 72 * 0.646
     # core parameters
-    geop = dict(
+    geop = GeomParams(
         a=L / N1,
         lx_leg=int(N1),
         ly_leg=int(N1 / 6),
         lx_neck=int(N1 / 6),
         ly_neck=int(N1 / 6),
     )
-    hamp_sys = dict(ts=tk, ws=0, vs=lambda_val / 1e3, ms=0.05, Wdis=0)
-    hamp_lead = dict(tl=tk, wl=0, vl=lambda_val / 1e3, ml=0.05)
+    hamp_sys = HamParams(hop=tk, wilson=0, soc=lambda_val / 1e3, mass=0.05, wdis=0)
+    hamp_lead = HamParams(hop=tk, wilson=0, soc=lambda_val / 1e3, mass=0.05)
     syst = mkhbar_4t(geop, hamp_sys, hamp_lead)  # This system won't be changed anymore
     idos_energy_range = np.arange(0, 0.2, 0.001)
     idos_kpm = False

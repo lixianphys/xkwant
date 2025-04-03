@@ -2,18 +2,21 @@ import matplotlib.pyplot as plt
 import pickle
 import sys
 import os
+import kwant
 from xkwant.templates import *
 from xkwant.utils import density_to_energy
+import numpy as np
 
 directory_path = sys.argv[1]
 
 with open(directory_path, "rb") as f:
     data = pickle.load(f)
 
+
 filename = os.path.basename(directory_path)
 fig, axes = plt.subplots(2, 2, figsize=(10, 12))
 fig.suptitle(
-    f"filename:{filename}\nIin:{data['Iin']}\nidos_kpm: {data['idos_kpm']}\nN1: {data['N1']},L: {data['L']:0.2f}\nhamiltonian_params_sys: {data['hamiltonian_params_sys']}",
+    f"filename:{filename}\nIin:{data['Iin']}\nidos_kpm: {data['idos_kpm']}\nN1: {data['N1']},L: {data['L']:0.2f}\n hamiltonian_params_sys: {data['hamiltonian_params_sys']}",
     x=0.5,
     y=0.95,
     ha="center",
@@ -28,10 +31,20 @@ idos = data["idos"]
 idos_energy_range = data["idos_energy_range"]
 densities = data["densities"]
 
-syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
+print(f"H_params_sys: {hamp_sys}\n")
+print(f"H_params_lead: {hamp_lead}\n")
+
+if 'ms' in hamp_sys and 'ws' in hamp_sys:
+    syst = doublerashba_mkhbar_4t(geop, hamp_sys, hamp_lead)
+elif 'ms' in hamp_sys and 'ws' not in hamp_sys:
+    syst = doublequad_mkhbar_4t(geop, hamp_sys, hamp_lead)
+elif 'ms' not in hamp_sys and 'ws' in hamp_sys:
+    syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+else:
+    raise ValueError("Parameters for system Hamiltonian are not compatible with Dirac, Rashba, Quadratic systems")
+
 
 density_to_label = [0.002, 0.0047, 0.0085]
-
 
 max_eng, min_eng = density_to_energy(
     idos, idos_energy_range, max(densities)
@@ -65,5 +78,7 @@ axes[1][0].set_ylabel("Energy [eV]")
     for v in density_to_label
 ]
 
+# Create plots directory if it doesn't exist
+os.makedirs("plots", exist_ok=True)
 
-plt.savefig(f"plots/{filename}.pdf")
+plt.savefig("plots/{}.pdf".format(filename))

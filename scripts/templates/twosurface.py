@@ -6,7 +6,8 @@ from xkwant.templates import *
 from xkwant.physics import *
 from xkwant.utils import *
 from xkwant.log import log_function_call
-from xkwant.config import LATTICE_CONST_HGTE
+from xkwant.schemas import HamParams, GeomParams
+
 
 
 @log_function_call
@@ -53,7 +54,7 @@ if __name__ == "__main__":
     L = N1 * LATTICE_CONST_HGTE
     idos_kpm = False
     # core parameters
-    geop = dict(
+    geop = GeomParams(
         a=L / N1,
         lx_leg=int(N1),
         ly_leg=int(N1 / 6),
@@ -64,10 +65,10 @@ if __name__ == "__main__":
     einv = 0
     for ehyb in np.arange(0, 0.04, 0.01):
         try:
-            hamp_sys = dict(
-                ws=0.1, vs=0.28, invs=einv, hybs=ehyb
+            hamp_sys = HamParams(
+                wilson=0.1, soc=0.28, inv=einv, hyb=ehyb
             )  # hbar*vf = 280 meV nm and inversion-symmetry breaking term = 4.2 meV (From SM, PRL 106, 126803 (2011) )
-            hamp_lead = dict(wl=0.1, vl=0.28, invl=einv, hybl=ehyb)
+            hamp_lead = HamParams(wilson=0.1, soc=0.28, inv=einv, hyb=ehyb)
             syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
 
             vd_d, vd_v12, vd_v34, idos, idos_energy_range = main(

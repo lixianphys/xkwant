@@ -4,6 +4,7 @@ import sys
 import os
 import glob
 import re
+import kwant
 from xkwant.templates import *
 from xkwant.utils import density_to_energy
 
