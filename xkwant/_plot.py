@@ -4,8 +4,11 @@ import sys
 import os
 import re
 import glob
-from .templates import *
-from .utils import density_to_energy
+import kwant
+import numpy as np
+
+from xkwant.templates import doubledirac_mkhbar_4t, gappeddirac_mkhbar_4t
+from xkwant.utils import density_to_energy
 
 
 def plotpkl_2by2(path_to_data, path_to_save_plots, figsize=(10, 12)):
@@ -34,11 +37,11 @@ def plotpkl_2by2(path_to_data, path_to_save_plots, figsize=(10, 12)):
 
     try:
         syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-    except KeyError:
+    except Exception:
         try:
             syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-        except KeyError:
-            syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
+        except Exception as e:
+            raise ValueError(f"No valid template found: {e}")
 
     max_eng, min_eng = density_to_energy(
         idos, idos_energy_range, max(densities)
@@ -130,13 +133,13 @@ def batch_plotpkl(scenario_name, path_to_folder, value):
             densities = data["densities"]
 
             try:
-                syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            except KeyError:
+                syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+            except Exception as e:
                 try:
                     syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-                except KeyError:
-                    syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
-
+                except Exception as e:
+                    raise ValueError(f"No valid template found: {e}")
+                
             max_eng, min_eng = density_to_energy(
                 idos, idos_energy_range, max(densities)
             ), density_to_energy(idos, idos_energy_range, min(densities))
@@ -214,11 +217,11 @@ def batch_plotpkl(scenario_name, path_to_folder, value):
 
             try:
                 syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            except KeyError:
+            except Exception:
                 try:
                     syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-                except KeyError:
-                    syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
+                except Exception as e:
+                    raise ValueError(f"No valid template found: {e}")
 
             max_eng, min_eng = density_to_energy(
                 idos, idos_energy_range, max(densities)
@@ -364,11 +367,11 @@ def batch_plotpkl(scenario_name, path_to_folder, value):
 
             try:
                 syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-            except KeyError:
+            except Exception:
                 try:
                     syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-                except KeyError:
-                    syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
+                except Exception as e:
+                    raise ValueError(f"No valid template found: {e}")
 
             max_eng, min_eng = density_to_energy(
                 idos, idos_energy_range, max(densities)
@@ -439,12 +442,12 @@ def batch_plotpkl(scenario_name, path_to_folder, value):
                 densities = data["densities"]
                 if type == "b":
                     try:
-                        syst = test_doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-                    except KeyError:
+                        syst = doubledirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
+                    except Exception:
                         try:
                             syst = gappeddirac_mkhbar_4t(geop, hamp_sys, hamp_lead)
-                        except KeyError:
-                            syst = mkhbar_4t(geop, hamp_sys, hamp_lead)
+                        except Exception as e:
+                            raise ValueError(f"No valid template found: {e}")
 
                     max_eng, min_eng = density_to_energy(
                         idos, idos_energy_range, max(densities)
