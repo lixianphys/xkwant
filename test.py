@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 
 from xkwant.batch import (    
@@ -10,8 +9,8 @@ from xkwant.batch import (
     vvector_4t,
 )
 from xkwant.physics import *
-from xkwant.templates import (doubledirac_mkhbar_4t, gappeddirac_mkhbar_4t, doublequad_mkhbar_4t, doublerashba_mkhbar_4t, mkhbar_4t, mkhbar_6t)
-from xkwant.schemas import GeomParams, HamParams, BundleParams
+from xkwant.templates import (doubledirac_mkhbar_4t, gappeddirac_mkhbar_4t, doublequad_mkhbar_4t, doublerashba_mkhbar_4t, mkhbar_4t)
+from xkwant.schemas import GeomParams, HamParams
 from xkwant.utils import get_dos, get_dos_kpm, get_idos
 
 class TestTemplates:
