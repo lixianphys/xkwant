@@ -19,33 +19,39 @@ It includes:
 
 - Device Construction Tools: Streamlines the creation and modification of devices.
 
-- Automated Input and Output Logging: Tracks parameters and results, ensuring better experiment reproducibility.
+- Automated Input and Output Logging: Tracks parameters and results, ensuring better experiment reproducibility (xkwant.log and console).
 
 By reducing manual effort, improving organization, and enhancing workflow efficiency, this toolbox makes building and analyzing tight-binding models in Kwant significantly more seamless.
 
 
 
-#### Core functionalities
+## Core functionalities
 ```bash
 scripts              
 xkwant
 ├── batch.py         # batch calculation
 ├── benchmark.py     # benchmarking new templates
-├── schemas.py        # configuration settings
+├── schemas.py       # data models
 ├── device.py        # templates to define a device in 2D space
 ├── log.py           # tracking parameters, inputs, and outputs
 ├── physics.py       # physics constants
-├── plot.py          # plotting tools
 ├── templates.py     # templates to run calculations (reduce redundancy)
 └── utils.py         # utilities
 ```
-## Installation
-### with conda
-- install Kwant (it takes ~10 min to finish)
+
+## Installation and Tests
+
+### Install Kwant with conda 
 ```shell
-conda env create -f envkwant.yml
+conda env create -f env_kwant.yml
+conda activate MyKwant
+python -c"import kwant; print(f'Kwant version: {kwant.__version__}')"
 ```
-- Activate conda env and install xkwant for development
+### Install other dependencies
 ```shell
-source start_local.sh
+python -m pip install "numpy<2" scipy matplotlib tqdm sympy pytest
+```
+### Run tests locally
+```shell
+python -m pytest test.py
 ```
