@@ -1,4 +1,4 @@
-import functools
+from functools import wraps
 import logging
 import os
 import sys
@@ -7,37 +7,31 @@ __all__ = ["log_function_call"]
 
 
 def log_function_call(func):
-    @functools.wraps(func)
+    @wraps(func)
     def wrapper(*args, **kwargs):
         # Log the function call
-        savepath = kwargs.get("savepath", None)
-        if savepath is None:
-            savepath = os.getcwd()
-        else:
-            savepath = os.path.join(os.getcwd(), savepath)
-
-        log_file_path = os.path.join(savepath, "call_log.log")
-
+        log_file_path = os.path.join(os.getcwd(), "xkwant.log")
         # Create a custom logger
         logger = logging.getLogger(func.__name__)
         logger.setLevel(logging.INFO)
 
-        # Create a new file handler each time the function is called
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(logging.DEBUG)
+
+        # Create a new file hand\ler each time the function is called
         fh = logging.FileHandler(log_file_path)
         fh.setLevel(logging.INFO)
 
         # Create a logging format
-        formatter = logging.Formatter("%(asctime)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+        )
         fh.setFormatter(formatter)
+        console_handler.setFormatter(formatter)
 
         # Add the handler to the logger
         logger.addHandler(fh)
-
-        # Log the script name
-        script_name = os.path.basename(sys.argv[0])
-        logger.info(f"Script {script_name} started.")
-
-        logger.info(f"Function {func.__name__} called.")
+        logger.addHandler(console_handler)
 
         # Log all arguments
         for i, arg in enumerate(args):
@@ -81,7 +75,7 @@ class ExampleClass:
 
 # Example function
 @log_function_call
-def example_function(a, b, instance):
+def example_function(a, b, instance, savepath="./scripts"):
     return a + b + instance.x + instance.y
 
 
